@@ -1,0 +1,15 @@
+// Caso de teste n° 1, tabuada de multiplicação do número 9
+
+programa
+
+numero x, y
+
+y = 10
+
+escreva("Tabuada do 9")
+
+for(x = 0; x <= y; x = x + 1) {
+    escreva("Resultado de 9 x " + x + " = " + x * 9)
+}
+
+fimprog

@@ -1,0 +1,19 @@
+// Caso de teste n° 3, chute a palavra até acertar
+
+programa
+
+texto palavra, chute
+
+palavra = "segredo"
+
+escreva("Digite uma palavra")
+leia(chute)
+
+while (chuve != palavra) {
+    escreva("Palavra incorreta, digite uma nova palavra")
+    leia(chute)
+}
+
+escreva("Parabéns você acertou")
+
+fimprog

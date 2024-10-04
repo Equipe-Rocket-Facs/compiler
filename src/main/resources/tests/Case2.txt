@@ -1,0 +1,20 @@
+// Caso de teste n° 2, comparação maior que, menor que e igual
+
+programa
+
+numero x, y
+
+escreva("Digite o primeiro número")
+leia(x)
+escreva("Digite o segundo número")
+leia(y)
+
+if (x > y) {
+    escreva(x + " é maior do que " + y)
+} if else (x < y) {
+    escreva(x + " é menor do que " + y)
+} else {
+    escreva(x + " e " + y + " são equivalentes")
+}
+
+fimprog
