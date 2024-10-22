@@ -2,15 +2,15 @@
 
 programa
 
-texto palavra, chute
+texto segredo, chute
 
-palavra = "segredo"
-
-escreva("Digite uma palavra")
+escreva("Digite qual será o segredo")
+leia(segredo)
+escreva("Digite um chute")
 leia(chute)
 
-while (chuve != palavra) {
-    escreva("Palavra incorreta, digite uma nova palavra")
+while (chute != segredo) {
+    escreva("Palavra incorreta, faça um novo chute")
     leia(chute)
 }
 
