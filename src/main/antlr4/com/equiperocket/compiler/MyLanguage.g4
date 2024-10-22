@@ -3,15 +3,16 @@ grammar MyLanguage;
 // Regras de inicialização
 prog: 'programa' decls commands 'fimprog';
 
-// Declaração de variáveis
+// Declaração de variáveis com tipo
 decls: decl*;
-decl: type idList;
+decl: type declItemList;
 
 // Tipos de variáveis
 type: 'numero' | 'texto' | 'bool';
 
-// Lista de identificadores
-idList: ID (',' ID)*;
+// Lista de itens declarados permitindo atribuição
+declItemList: declItem (',' declItem)*;
+declItem: attribution | ID;
 
 // Comandos
 commands: command*;
@@ -29,12 +30,12 @@ writeOutput: 'escreva' '(' (TEXT | expr | BOOL) ('+' (TEXT | expr | BOOL))* ')';
 // Atribuição
 attribution: ID '=' (expr | boolExpr | TEXT);
 
-// Estrutura if ... else
+// Estrutura if else
 ifStmt: 'if' '(' condition ')' block (('if else' '(' condition ')' block)* 'else' block)?;
 // Estrutura while
 whileStmt: 'while' '(' condition ')' block;
 // Estrutura for
-forStmt: 'for' '(' attribution ';' condition (';' attribution)? ')' block;
+forStmt: 'for' '(' (decl | attribution) ';' condition (';' attribution)? ')' block;
 
 // Bloco de comandos
 block: '{' (command)+ '}';
