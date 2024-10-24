@@ -8,7 +8,7 @@ decls: decl*;
 decl: type declItemList;
 
 // Tipos de variáveis
-type: 'numero' | 'texto' | 'bool';
+type: 'numero' | 'decimal' | 'texto' | 'bool';
 
 // Lista de itens declarados permitindo atribuição
 declItemList: declItem (',' declItem)*;
@@ -38,7 +38,7 @@ whileStmt: 'while' '(' condition ')' block;
 forStmt: 'for' '(' (decl | attribution) ';' condition (';' attribution)? ')' block;
 
 // Bloco de comandos
-block: '{' (command)+ '}';
+block: '{' commands '}';
 
 // Condição
 condition: boolExpr;
@@ -55,7 +55,8 @@ boolExpr: 'NAO' boolExpr
 expr: '(' expr ')'
     | expr ('*' | '/') expr
     | expr ('+' | '-') expr
-    | NUM
+    | NUM_INT
+    | NUM_DEC
     | ID;
 
 // Operadores relacionais
@@ -63,7 +64,8 @@ relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
 
 // Tokens
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
-NUM: [0-9]+ ('.' [0-9]+)?;
+NUM_INT: [0-9]+;
+NUM_DEC: [0-9]+ '.' [0-9]+;
 TEXT: '"' ( ~["\\] | '\\' . )* '"';
 BOOL: 'VERDADEIRO' | 'FALSO';
 
