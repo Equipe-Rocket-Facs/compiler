@@ -26,9 +26,9 @@ command : readInput
 // Comando de leitura
 readInput: 'leia' '(' ID ')';
 // Comando de escrita
-writeOutput: 'escreva' '(' (TEXT | expr | BOOL) ('+' (TEXT | expr | BOOL))* ')';
+writeOutput: 'escreva' '(' (TEXT | BOOL | expr) ('+' (TEXT | BOOL | expr))* ')';
 // Atribuição
-attribution: ID '=' (expr | boolExpr | TEXT);
+attribution: ID '=' (boolExpr | expr | TEXT);
 
 // Estrutura if else
 ifStmt: 'if' '(' condition ')' block (('if else' '(' condition ')' block)* 'else' block)?;
@@ -63,11 +63,11 @@ expr: '(' expr ')'
 relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
 
 // Tokens
+BOOL: 'VERDADEIRO' | 'FALSO';
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
 NUM_INT: [0-9]+;
 NUM_DEC: [0-9]+ '.' [0-9]+;
 TEXT: '"' ( ~["\\] | '\\' . )* '"';
-BOOL: 'VERDADEIRO' | 'FALSO';
 
 // Ignorar espaços e comentários
 WS: [ \t\r\n]+ -> skip;
