@@ -2,6 +2,7 @@ package com.equiperocket.compiler;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class MyLanguageToJava implements MyLanguageListener {
             }
 
             if (item.attribution() != null) {
+                // TODO: Corrigir quando expressões booleanas forem implementadas
                 String assignedValue = item.attribution().expr().getText();
                 declaration.append(varName).append(" = ").append(assignedValue);
             } else {
@@ -139,10 +141,38 @@ public class MyLanguageToJava implements MyLanguageListener {
 
         List<String> parts = new ArrayList<>();
 
-        // TODO: A lógica ainda precisa ser implementada
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            ParseTree child = ctx.getChild(i);
+
+            if (child instanceof TerminalNode) {
+                int type = ((TerminalNode) child).getSymbol().getType();
+
+                if (type == MyLanguageParser.TEXT) {
+                    parts.add(child.getText());
+                } else if (type == MyLanguageParser.BOOL) {
+                    String bool = child.getText().equals("VERDADEIRO") ? "true" : "false";
+                    parts.add(bool);
+                }
+            } else if (child instanceof MyLanguageParser.ExprContext) {
+                parts.add(processExpr((MyLanguageParser.ExprContext) child));
+            }
+        }
 
         javaCode.append(String.join(" + ", parts));
         javaCode.append(");\n");
+    }
+
+    private String processExpr(MyLanguageParser.ExprContext ctx) {
+        if (ctx.NUM_INT() != null) {
+            return ctx.NUM_INT().getText();
+        } else if (ctx.NUM_DEC() != null) {
+            return ctx.NUM_DEC().getText();
+        } else if (ctx.ID() != null) {
+            return ctx.ID().getText();
+        }
+
+        // TODO: Lógica de expressões deve ser implementada
+        return "";
     }
 
     @Override
