@@ -37,7 +37,7 @@ public class CompilerApplication {
             walker.walk(listener, tree);
 
             // Obtém o código java gerado
-            String javaCode = listener.getJavaCode();
+            String javaCode = listener.generateJavaCode();
 
             // Cria ou sobscreve a saída com o código java gerado
             Files.write(Paths.get("Output.java"), javaCode.getBytes());

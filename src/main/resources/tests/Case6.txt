@@ -1,0 +1,28 @@
+// Caso de teste 6: Jogo de adivinhação com número limitado de tentativas
+programa
+numero secreto = 42, tentativa, contador = 1
+numero maxTentativas = 5
+bool acertou = FALSO
+
+escreva("Bem-vindo ao jogo de adivinhação!")
+escreva("Você tem " + maxTentativas + " tentativas")
+
+for(contador = 1; contador <= maxTentativas E acertou == FALSO; contador = contador + 1) {
+    escreva("Tentativa " + contador + ": Digite um número")
+    leia(tentativa)
+
+    if (tentativa == secreto) {
+        acertou = VERDADEIRO
+        escreva("Parabéns! Você acertou em " + contador + " tentativas!")
+    } if else (tentativa < secreto) {
+        escreva("O número é maior")
+    } else {
+        escreva("O número é menor")
+    }
+
+    if (contador == maxTentativas E acertou == FALSO) {
+        escreva("Suas tentativas acabaram! O número era " + secreto)
+    }
+}
+
+fimprog

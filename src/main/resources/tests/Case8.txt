@@ -1,0 +1,23 @@
+// Caso de teste 8: Calculadora de sequência de Fibonacci
+
+programa
+numero n, termo1 = 0, termo2 = 1, proximoTermo, contador
+
+escreva("Calculadora da sequência de Fibonacci")
+escreva("Digite quantos termos você quer ver:")
+leia(n)
+
+escreva("Sequência de Fibonacci com " + n + " termos:")
+
+for (contador = 1; contador <= n; contador = contador + 1) {
+    if (contador <= 1) {
+        proximoTermo = contador
+    } else {
+        proximoTermo = termo1 + termo2
+        termo1 = termo2
+        termo2 = proximoTermo
+    }
+    escreva(proximoTermo)
+}
+
+fimprog

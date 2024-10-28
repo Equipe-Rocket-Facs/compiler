@@ -1,0 +1,13 @@
+// Caso de teste de erro 1: Variável não declarada e tipo incorreto
+programa
+numero x = 10
+
+// Erro: variável y não foi declarada
+y = 20
+
+// Erro: tentativa de atribuir texto a uma variável numérica
+x = "teste"
+
+escreva(x + y)
+
+fimprog

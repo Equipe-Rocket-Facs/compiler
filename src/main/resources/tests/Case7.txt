@@ -1,0 +1,26 @@
+// Caso de teste 7: Calculadora de média com notas decimais
+programa
+decimal nota1, nota2, nota3, media
+texto situacao
+
+escreva("Digite a primeira nota")
+leia(nota1)
+escreva("Digite a segunda nota")
+leia(nota2)
+escreva("Digite a terceira nota")
+leia(nota3)
+
+media = (nota1 + nota2 + nota3) / 3
+
+if (media >= 7.0) {
+    situacao = "Aprovado"
+} if else (media >= 5.0) {
+    situacao = "Recuperação"
+} else {
+    situacao = "Reprovado"
+}
+
+escreva("Média: " + media)
+escreva("Situação: " + situacao)
+
+fimprog

@@ -1,0 +1,22 @@
+// Caso de teste de erro 2: Múltiplos erros de sintaxe e lógica
+programa
+// Erro: declaração duplicada da mesma variável
+numero contador = 0
+numero contador = 5
+
+// Erro: operador lógico inválido
+if (x >>> y) {
+    escreva("teste")
+}
+
+// Erro: condição while mal formada
+while x < 10 {  // faltam parênteses
+    contador = contador + 1
+}
+
+// Erro: variável não inicializada
+numero teste
+escreva(teste + 1)
+
+// Erro: fechamento incorreto do programa
+fimprogram  // escrito incorretamente
