@@ -62,12 +62,11 @@ public class ExpressionProcessor {
         return left + " " + operator + " " + right;
     }
 
-    // TODO: validação está causando erro no Case7.txt
     public String getExpressionType(MyLanguageParser.ExprContext ctx) {
         if (ctx.expr().size() == 2) {
             return getBinaryExpressionType(ctx);
         } else if (ctx.expr().size() == 1) {
-            getExpressionType(ctx.expr(0));
+            return getExpressionType(ctx.expr(0));
         } else if (ctx.NUM_INT() != null) {
             return "int";
         } else if (ctx.NUM_DEC() != null) {
@@ -97,10 +96,6 @@ public class ExpressionProcessor {
     }
 
     private String getVariableType(MyLanguageParser.ExprContext ctx) {
-        String type = variables.get(ctx.ID().getText());
-
-        TypeValidator.validateNumeric(type, ctx);
-
-        return type;
+        return variables.get(ctx.ID().getText());
     }
 }
