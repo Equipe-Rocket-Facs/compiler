@@ -25,4 +25,14 @@ public class TypeValidator {
             );
         }
     }
+
+    public static void validateBoolean(String type, ParserRuleContext ctx) {
+        if (!type.equals("boolean")) {
+            throw new TypeMismatchException(
+                    "Expressões booleanas não aceitam números e Strings",
+                    ctx.getStart().getLine(),
+                    ctx.getStart().getCharPositionInLine()
+            );
+        }
+    }
 }

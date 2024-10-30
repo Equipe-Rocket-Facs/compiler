@@ -71,6 +71,8 @@ public class MyLanguageToJava implements MyLanguageListener {
     @Override public void exitCondition(MyLanguageParser.ConditionContext ctx) {}
     @Override public void enterBoolExpr(MyLanguageParser.BoolExprContext ctx) {}
     @Override public void exitBoolExpr(MyLanguageParser.BoolExprContext ctx) {}
+    @Override public void enterRelExpr(MyLanguageParser.RelExprContext ctx) {}
+    @Override public void exitRelExpr(MyLanguageParser.RelExprContext ctx) {}
     @Override public void enterRelOp(MyLanguageParser.RelOpContext ctx) {}
     @Override public void exitRelOp(MyLanguageParser.RelOpContext ctx) {}
     @Override public void enterExpr(MyLanguageParser.ExprContext ctx) {}

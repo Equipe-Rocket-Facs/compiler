@@ -43,12 +43,17 @@ block: '{' commands '}';
 condition: boolExpr;
 
 // Expressões booleanas com operadores lógicos
-boolExpr: 'NAO' boolExpr
-        | '(' boolExpr ')'
+boolExpr: boolExpr 'OU' boolExpr
         | boolExpr 'E' boolExpr
-        | boolExpr 'OU' boolExpr
-        | expr relOp expr
-        | BOOL;
+        | boolExpr '==' boolExpr
+        | boolExpr '!=' boolExpr
+        | 'NAO' boolExpr
+        | relExpr
+        | '(' boolExpr ')'
+        | BOOL
+        | ID;
+
+relExpr: expr relOp expr;
 
 // Operadores relacionais
 relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
