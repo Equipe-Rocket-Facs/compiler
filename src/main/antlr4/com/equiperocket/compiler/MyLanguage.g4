@@ -27,7 +27,7 @@ readInput: 'leia' '(' ID ')';
 // Comando de escrita
 writeOutput: 'escreva' '(' (TEXT | BOOL | expr) ('+' (TEXT | BOOL | expr))* ')';
 // Atribuição
-attribution: ID '=' (boolExpr | expr | TEXT);
+attribution: ID '=' (expr | boolExpr | TEXT);
 
 // Estrutura if else
 ifStmt: 'if' '(' condition ')' block (('if else' '(' condition ')' block)* 'else' block)?;
