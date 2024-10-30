@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 public class CompilerApplication {
 
+    // TODO: posição do caractere na linha em mensagens de erro pode estar errada
     public static void main(String[] args) {
 
         // Verifica se o arquivo foi passado como argumento
@@ -27,6 +28,10 @@ public class CompilerApplication {
             MyLanguageLexer lexer = new MyLanguageLexer(CharStreams.fromString(sourceCode));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             MyLanguageParser parser = new MyLanguageParser(tokens);
+
+            // Substitui o ouvinte padrão para erros de sintaxe
+            parser.removeErrorListeners();
+            parser.addErrorListener(new SyntaxErrorListener());
 
             // Faz a análise sintática
             MyLanguageParser.ProgContext tree = parser.prog();
@@ -48,7 +53,6 @@ public class CompilerApplication {
         } catch (RecognitionException e) {
             System.err.println("Erro de sintaxe: " + e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println("Erro: " + e.getMessage());
         }
     }
