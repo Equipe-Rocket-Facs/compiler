@@ -1,5 +1,7 @@
-// Caso de teste 7: Calculadora de média com notas decimais
+// Caso de teste n° 7, calculadora de média com notas decimais
+
 programa
+
 decimal nota1, nota2, nota3, media
 texto situacao
 

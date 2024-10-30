@@ -1,22 +1,24 @@
-// Caso de teste de erro 2: Múltiplos erros de sintaxe e lógica
-programa
-// Erro: declaração duplicada da mesma variável
-numero contador = 0
-numero contador = 5
+// Caso de teste de erro n° 2, múltiplos erros de sintaxe e lógica
 
-// Erro: operador lógico inválido
+programa
+
+// Erro: Variável contador já foi declarada
+inteiro contador
+inteiro contador
+
+// Erro: Operador lógico inválido e variáveis não declaradas
 if (x >>> y) {
     escreva("teste")
 }
 
-// Erro: condição while mal formada
-while x < 10 {  // faltam parênteses
+// Erro: Condição do while com formato impróprio
+while x < 10 { // Faltam parênteses
     contador = contador + 1
 }
 
-// Erro: variável não inicializada
-numero teste
+// Erro: Declaração fora de escopo e variável não inicializada
+inteiro teste
 escreva(teste + 1)
 
-// Erro: fechamento incorreto do programa
-fimprogram  // escrito incorretamente
+// Erro: Fechamento incoerente do programa
+fimprogram // Escrito incorretamente

@@ -3,50 +3,47 @@ package com.equiperocket.compiler.processor;
 import com.equiperocket.compiler.MyLanguageParser;
 import com.equiperocket.compiler.util.CodeBuilder;
 import com.equiperocket.compiler.util.TypeMapper;
-import com.equiperocket.compiler.validation.TypeValidator;
 import com.equiperocket.compiler.validation.VariableValidator;
 
 import java.util.Map;
 
 public class DeclarationProcessor {
+
     private final Map<String, String> variables;
     private final CodeBuilder codeBuilder;
-    private final ExpressionProcessor expressionProcessor;
 
     public DeclarationProcessor(Map<String, String> variables, CodeBuilder codeBuilder) {
         this.variables = variables;
         this.codeBuilder = codeBuilder;
-        this.expressionProcessor = new ExpressionProcessor(variables, codeBuilder);
     }
 
     public void processDeclaration(MyLanguageParser.DeclContext ctx) {
-        String javaType = TypeMapper.toJavaType(ctx.type().getText());
+        String type = TypeMapper.toJavaType(ctx.type().getText());
 
-        for (MyLanguageParser.DeclItemContext item : ctx.declItemList().declItem()) {
-            processVariableDeclaration(javaType, item);
+        codeBuilder.append(type).append(" ");
+
+        int totalVariables = ctx.declList().ID().size();
+
+        for (int x = 0; x < totalVariables; x++) {
+            String varName = ctx.declList().ID().get(x).getText();
+
+            processVariable(varName, type, ctx);
+
+            if (!isLastVariable(x, totalVariables)) {
+                codeBuilder.append(varName).append(", ");
+            } else {
+                codeBuilder.append(varName).appendLine(";");
+            }
         }
     }
 
-    private void processVariableDeclaration(String type, MyLanguageParser.DeclItemContext item) {
-        String varName = getVariableName(item);
-        VariableValidator.checkNotDeclared(varName, variables, item);
+    private void processVariable(String varName, String type, MyLanguageParser.DeclContext ctx) {
+        VariableValidator.checkNotDeclared(varName, variables, ctx);
+
         variables.put(varName, type);
-
-        codeBuilder.append(type + " " + varName);
-
-        if (item.attribution() != null && item.attribution().expr() != null) {
-            String value = expressionProcessor.processExpression(item.attribution().expr());
-            String assignedType = expressionProcessor.inferExpressionType(item.attribution().expr());
-            TypeValidator.validateTypes(type, assignedType, item);
-            codeBuilder.append(" = " + value);
-        } else {
-            codeBuilder.append(" = " + TypeMapper.getDefaultValue(type));
-        }
-
-        codeBuilder.appendLine(";");
     }
 
-    private String getVariableName(MyLanguageParser.DeclItemContext item) {
-        return item.ID() != null ? item.ID().getText() : item.attribution().ID().getText();
+    private boolean isLastVariable(int x, int totalVariables) {
+        return x == totalVariables - 1;
     }
 }

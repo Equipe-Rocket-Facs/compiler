@@ -1,7 +1,11 @@
-// Caso de teste 8: Calculadora de sequência de Fibonacci
+// Caso de teste n° 8, calculadora de sequência de Fibonacci
 
 programa
-numero n, termo1 = 0, termo2 = 1, proximoTermo, contador
+
+inteiro n, termo1, termo2, proximoTermo, contador
+
+termo1 = 0
+termo2 = 1
 
 escreva("Calculadora da sequência de Fibonacci")
 escreva("Digite quantos termos você quer ver:")

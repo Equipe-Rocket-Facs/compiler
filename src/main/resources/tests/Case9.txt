@@ -1,11 +1,15 @@
-// Caso de teste de erro 1: Variável não declarada e tipo incorreto
-programa
-numero x = 10
+// Caso de teste de erro n° 1, variável não declarada e tipo incorreto
 
-// Erro: variável y não foi declarada
+programa
+
+inteiro x
+
+x = 10
+
+// Erro: Variável y não foi declarada
 y = 20
 
-// Erro: tentativa de atribuir texto a uma variável numérica
+// Erro: Tentativa de atribuir String a uma variável do tipo int
 x = "teste"
 
 escreva(x + y)

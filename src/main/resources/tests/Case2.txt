@@ -2,7 +2,7 @@
 
 programa
 
-numero x, y
+inteiro x, y
 
 escreva("Digite o primeiro número")
 leia(x)

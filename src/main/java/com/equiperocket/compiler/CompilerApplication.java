@@ -48,6 +48,7 @@ public class CompilerApplication {
         } catch (RecognitionException e) {
             System.err.println("Erro de sintaxe: " + e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Erro: " + e.getMessage());
         }
     }

@@ -1,6 +1,8 @@
-// Caso de teste 5: Verificador de faixa etária com múltiplas condições
+// Caso de teste n° 5, verificador de faixa etária com múltiplas condições
+
 programa
-numero idade
+
+inteiro idade
 texto categoria
 
 escreva("Digite sua idade")
@@ -14,8 +16,11 @@ if (idade < 0) {
 } if else (idade < 18) {
     categoria = "Adolescente"
     escreva("Você é " + categoria)
-} else {
+} if else (idade < 60) {
     categoria = "Adulto"
+    escreva("Você é " + categoria)
+} else {
+    categoria = "Idoso"
     escreva("Você é " + categoria)
 }
 

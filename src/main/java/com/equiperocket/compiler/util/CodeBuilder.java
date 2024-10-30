@@ -1,45 +1,62 @@
 package com.equiperocket.compiler.util;
 
-
 import com.equiperocket.compiler.constants.JavaConstants;
 
 public class CodeBuilder {
+
     private final StringBuilder code;
     private int indentationLevel;
-    private boolean needsIndentation;
+    private boolean isIndented;
 
     public CodeBuilder() {
         this.code = new StringBuilder();
         this.indentationLevel = 0;
-        this.needsIndentation = true;
+        this.isIndented = true;
     }
 
     public void appendClassHeader() {
-        code.append(JavaConstants.CLASS_HEADER);
-        code.append(JavaConstants.MAIN_METHOD_HEADER);
-        indentationLevel += 2;
+        appendLine(JavaConstants.CLASS_HEADER);
+        increaseIndentation();
+
+        appendLine(JavaConstants.MAIN_METHOD_HEADER);
+        increaseIndentation();
     }
 
     public void appendClassFooter() {
-        indentationLevel -= 2;
-        code.append(JavaConstants.CLOSE_BLOCK);
-        code.append(JavaConstants.CLOSE_BLOCK);
+        if (indentationLevel != 0) {
+            decreaseIndentation();
+
+            appendLine(JavaConstants.CLOSE_BLOCK);
+
+            appendClassFooter();
+        }
     }
 
-    public void append(String text) {
-        if (needsIndentation) {
+    public void appendScanner() {
+        appendLine(JavaConstants.SCANNER_INIT);
+    }
+
+    public CodeBuilder append(String text) {
+        if (!isIndented) {
             code.append(getIndentation());
-            needsIndentation = false;
+            isIndented = true;
         }
+
         code.append(text);
+        return this;
     }
 
     public void appendLine(String text) {
-        if (needsIndentation) {
+        if (!isIndented) {
             code.append(getIndentation());
         }
+
         code.append(text.trim()).append("\n");
-        needsIndentation = true;
+        isIndented = false;
+    }
+
+    private String getIndentation() {
+        return JavaConstants.TAB.repeat(Math.max(0, indentationLevel));
     }
 
     public void increaseIndentation() {
@@ -48,10 +65,6 @@ public class CodeBuilder {
 
     public void decreaseIndentation() {
         indentationLevel--;
-    }
-
-    private String getIndentation() {
-        return "    ".repeat(Math.max(0, indentationLevel));
     }
 
     public String build() {

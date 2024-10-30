@@ -1,6 +1,11 @@
-// Caso de teste 4: Calculadora de potência com while
+// Caso de teste n° 4, calculadora de potência com while
+
 programa
-numero base, expoente, resultado = 1, contador = 0
+
+inteiro base, expoente, resultado, contador
+
+resultado = 1
+contador = 0
 
 escreva("Digite a base")
 leia(base)

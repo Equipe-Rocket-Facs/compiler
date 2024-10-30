@@ -5,14 +5,13 @@ prog: 'programa' decls commands 'fimprog';
 
 // Declaração de variáveis com tipo
 decls: decl*;
-decl: type declItemList;
+decl: type declList;
+
+// Lista de itens declarados
+declList: ID (',' ID)*;
 
 // Tipos de variáveis
-type: 'numero' | 'decimal' | 'texto' | 'bool';
-
-// Lista de itens declarados permitindo atribuição
-declItemList: declItem (',' declItem)*;
-declItem: attribution | ID;
+type: 'inteiro' | 'decimal' | 'texto' | 'bool';
 
 // Comandos
 commands: command*;
@@ -35,7 +34,7 @@ ifStmt: 'if' '(' condition ')' block (('if else' '(' condition ')' block)* 'else
 // Estrutura while
 whileStmt: 'while' '(' condition ')' block;
 // Estrutura for
-forStmt: 'for' '(' (decl | attribution) ';' condition (';' attribution)? ')' block;
+forStmt: 'for' '(' attribution ';' condition (';' attribution)? ')' block;
 
 // Bloco de comandos
 block: '{' commands '}';
@@ -45,22 +44,24 @@ condition: boolExpr;
 
 // Expressões booleanas com operadores lógicos
 boolExpr: 'NAO' boolExpr
+        | '(' boolExpr ')'
         | boolExpr 'E' boolExpr
         | boolExpr 'OU' boolExpr
-        | '(' boolExpr ')'
         | expr relOp expr
         | BOOL;
 
+// Operadores relacionais
+relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
+
 // Expressões aritméticas, obedecendo precedência
 expr: '(' expr ')'
-    | expr ('*' | '/') expr
-    | expr ('+' | '-') expr
+    | expr mathOp expr
     | NUM_INT
     | NUM_DEC
     | ID;
 
-// Operadores relacionais
-relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
+// Operadores matemáticos
+mathOp: ('*' | '/') | ('+' | '-');
 
 // Tokens
 BOOL: 'VERDADEIRO' | 'FALSO';
