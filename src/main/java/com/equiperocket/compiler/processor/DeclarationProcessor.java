@@ -4,7 +4,9 @@ import com.equiperocket.compiler.MyLanguageParser;
 import com.equiperocket.compiler.util.CodeBuilder;
 import com.equiperocket.compiler.util.TypeMapper;
 import com.equiperocket.compiler.validation.VariableValidator;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.List;
 import java.util.Map;
 
 public class DeclarationProcessor {
@@ -22,10 +24,11 @@ public class DeclarationProcessor {
 
         codeBuilder.append(type).append(" ");
 
-        int totalVariables = ctx.declList().ID().size();
+        List<TerminalNode> ids = ctx.declList().ID();
+        int totalVariables = ids.size();
 
         for (int x = 0; x < totalVariables; x++) {
-            String varName = ctx.declList().ID().get(x).getText();
+            String varName = ids.get(x).getText();
 
             processVariable(varName, type, ctx);
 

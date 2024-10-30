@@ -12,9 +12,12 @@ public class BoolExpressionProcessor {
         this.expressionProcessor = new ExpressionProcessor(variables);
     }
 
-    // TODO: add suporte a "NAO" e (), ambos contém apenas UM boolExpr
     public String processBoolExpression(MyLanguageParser.BoolExprContext ctx) {
-        if (ctx.boolExpr().size() == 2) {
+        if (ctx.boolExpr().size() == 1 && ctx.getChildCount() == 2) {
+            return processNotOperator(ctx);
+        } else if (ctx.boolExpr().size() == 1 && ctx.getChildCount() == 3) {
+            return processParentheses(ctx);
+        } else if (ctx.boolExpr().size() == 2) {
             return processLogicOperators(ctx);
         } else if (ctx.expr() != null) {
             return processExpr(ctx);
@@ -22,6 +25,16 @@ public class BoolExpressionProcessor {
             return processBool(ctx);
         }
         return "";
+    }
+
+    private String processNotOperator(MyLanguageParser.BoolExprContext ctx) {
+        return "!" + processParentheses(ctx);
+    }
+
+    private String processParentheses(MyLanguageParser.BoolExprContext ctx) {
+        String boolExpr = processBoolExpression(ctx.boolExpr(0));
+
+        return "(" + boolExpr + ")";
     }
 
     private String processLogicOperators(MyLanguageParser.BoolExprContext ctx) {

@@ -2,6 +2,7 @@ package com.equiperocket.compiler.validation;
 
 import com.equiperocket.compiler.exception.DuplicateVariableException;
 import com.equiperocket.compiler.exception.UndeclaredVariableException;
+import com.equiperocket.compiler.exception.UninitializedVariableException;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Map;
@@ -26,5 +27,14 @@ public class VariableValidator {
                     ctx.getStart().getCharPositionInLine()
             );
         }
+    }
+
+    public static void checkInitialized(String varName, Map<String, String> variables, ParserRuleContext ctx) {
+        // TODO: implementer lógica para checar inicialização
+        throw new UninitializedVariableException(
+                String.format("Variável não inicializada: %s", varName),
+                ctx.getStart().getLine(),
+                ctx.getStart().getCharPositionInLine()
+        );
     }
 }
