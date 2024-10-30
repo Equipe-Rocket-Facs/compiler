@@ -12,10 +12,12 @@ import java.util.Map;
 public class DeclarationProcessor {
 
     private final Map<String, String> variables;
+    private final Map<String, Boolean> variablesInitialized;
     private final CodeBuilder codeBuilder;
 
-    public DeclarationProcessor(Map<String, String> variables, CodeBuilder codeBuilder) {
+    public DeclarationProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
         this.variables = variables;
+        this.variablesInitialized = variablesInitialized;
         this.codeBuilder = codeBuilder;
     }
 
@@ -44,6 +46,7 @@ public class DeclarationProcessor {
         VariableValidator.checkNotDeclared(varName, variables, ctx);
 
         variables.put(varName, type);
+        variablesInitialized.put(varName, false);
     }
 
     private boolean isLastVariable(int x, int totalVariables) {

@@ -9,9 +9,11 @@ import java.util.Map;
 public class ExpressionProcessor {
 
     private final Map<String, String> variables;
+    private final Map<String, Boolean> variablesInitialized;
 
-    public ExpressionProcessor(Map<String, String> variables) {
+    public ExpressionProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized) {
         this.variables = variables;
+        this.variablesInitialized = variablesInitialized;
     }
 
     public String processExpression(MyLanguageParser.ExprContext ctx) {
@@ -47,6 +49,7 @@ public class ExpressionProcessor {
         String varName = ctx.ID().getText();
 
         VariableValidator.checkDeclared(varName, variables, ctx);
+        VariableValidator.checkInitialized(varName, variablesInitialized, ctx);
 
         return varName;
     }

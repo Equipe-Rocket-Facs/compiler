@@ -11,10 +11,10 @@ public class CommandProcessor {
     private final AttributionProcessor attributionProcessor;
     private final StructuralProcessor structuralProcessor;
 
-    public CommandProcessor(Map<String, String> variables, CodeBuilder codeBuilder) {
-        this.ioProcessor = new IOProcessor(variables, codeBuilder);
-        this.attributionProcessor = new AttributionProcessor(variables, codeBuilder);
-        this.structuralProcessor = new StructuralProcessor(variables, codeBuilder, this);
+    public CommandProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
+        this.ioProcessor = new IOProcessor(variables, variablesInitialized, codeBuilder);
+        this.attributionProcessor = new AttributionProcessor(variables, variablesInitialized, codeBuilder);
+        this.structuralProcessor = new StructuralProcessor(variables, variablesInitialized, codeBuilder, this);
     }
 
     public void processCommands(MyLanguageParser.CommandsContext ctx) {

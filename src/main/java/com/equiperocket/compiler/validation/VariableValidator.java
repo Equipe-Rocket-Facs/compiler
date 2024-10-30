@@ -29,12 +29,13 @@ public class VariableValidator {
         }
     }
 
-    public static void checkInitialized(String varName, Map<String, String> variables, ParserRuleContext ctx) {
-        // TODO: implementer lógica para checar inicialização
-        throw new UninitializedVariableException(
-                String.format("Variável não inicializada: %s", varName),
-                ctx.getStart().getLine(),
-                ctx.getStart().getCharPositionInLine()
-        );
+    public static void checkInitialized(String varName, Map<String, Boolean> variablesInitialized, ParserRuleContext ctx) {
+        if (!variablesInitialized.get(varName)) {
+            throw new UninitializedVariableException(
+                    String.format("Variável não inicializada: %s", varName),
+                    ctx.getStart().getLine(),
+                    ctx.getStart().getCharPositionInLine()
+            );
+        }
     }
 }

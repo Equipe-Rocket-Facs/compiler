@@ -19,8 +19,9 @@ public class MyLanguageToJava implements MyLanguageListener {
     public MyLanguageToJava() {
         this.codeBuilder = new CodeBuilder();
         Map<String, String> variables = new HashMap<>();
-        this.declarationProcessor = new DeclarationProcessor(variables, codeBuilder);
-        this.commandProcessor = new CommandProcessor(variables, codeBuilder);
+        Map<String, Boolean> variablesInitialized = new HashMap<>();
+        this.declarationProcessor = new DeclarationProcessor(variables, variablesInitialized, codeBuilder);
+        this.commandProcessor = new CommandProcessor(variables, variablesInitialized, codeBuilder);
     }
 
     @Override

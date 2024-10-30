@@ -18,10 +18,10 @@ public class IOProcessor {
     private final ExpressionProcessor expressionProcessor;
     private boolean isScannerInitialized;
 
-    public IOProcessor(Map<String, String> variables, CodeBuilder codeBuilder) {
+    public IOProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
         this.variables = variables;
         this.codeBuilder = codeBuilder;
-        this.expressionProcessor = new ExpressionProcessor(variables);
+        this.expressionProcessor = new ExpressionProcessor(variables, variablesInitialized);
         this.isScannerInitialized = false;
     }
 

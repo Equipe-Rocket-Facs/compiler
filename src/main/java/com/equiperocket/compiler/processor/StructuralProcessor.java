@@ -12,11 +12,11 @@ public class StructuralProcessor {
     private final CommandProcessor commandProcessor;
     private final AttributionProcessor attributionProcessor;
 
-    public StructuralProcessor(Map<String, String> variables, CodeBuilder codeBuilder, CommandProcessor commandProcessor) {
+    public StructuralProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder, CommandProcessor commandProcessor) {
         this.codeBuilder = codeBuilder;
-        this.boolExpressionProcessor = new BoolExpressionProcessor(variables);
+        this.boolExpressionProcessor = new BoolExpressionProcessor(variables, variablesInitialized);
         this.commandProcessor = commandProcessor;
-        this.attributionProcessor = new AttributionProcessor(variables, codeBuilder);
+        this.attributionProcessor = new AttributionProcessor(variables, variablesInitialized, codeBuilder);
     }
 
     public void processIfStatement(MyLanguageParser.IfStmtContext ctx) {

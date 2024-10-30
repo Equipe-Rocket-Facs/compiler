@@ -10,15 +10,17 @@ import java.util.Map;
 public class AttributionProcessor {
 
     private final Map<String, String> variables;
+    private final Map<String, Boolean> variablesInitialized;
     private final CodeBuilder codeBuilder;
     private final BoolExpressionProcessor boolExpressionProcessor;
     private final ExpressionProcessor expressionProcessor;
 
-    public AttributionProcessor(Map<String, String> variables, CodeBuilder codeBuilder) {
+    public AttributionProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
         this.variables = variables;
+        this.variablesInitialized = variablesInitialized;
         this.codeBuilder = codeBuilder;
-        this.boolExpressionProcessor = new BoolExpressionProcessor(variables);
-        this.expressionProcessor = new ExpressionProcessor(variables);
+        this.boolExpressionProcessor = new BoolExpressionProcessor(variables, variablesInitialized);
+        this.expressionProcessor = new ExpressionProcessor(variables, variablesInitialized);
     }
 
     public void processAttribution(MyLanguageParser.AttributionContext ctx, boolean isInsideStructure) {
@@ -29,8 +31,12 @@ public class AttributionProcessor {
         String type = variables.get(varName);
         validateAttribution(type, ctx);
 
-        codeBuilder.append(varName).append(" = ");
-        codeBuilder.append(processAttributionValue(ctx));
+        String value = processAttributionValue(ctx);
+        codeBuilder.append(varName).append(" = ").append(value);
+
+        // Tem que vir depois do processamento, pois na atribuição de var 1 a uma var 2, a
+        // var 1 precisa ser inicializada, e se viesse antes poderia abrir margem para erro
+        variablesInitialized.put(varName, true);
 
         if (!isInsideStructure) {
             codeBuilder.appendLine(";");

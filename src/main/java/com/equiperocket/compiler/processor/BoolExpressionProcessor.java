@@ -2,17 +2,20 @@ package com.equiperocket.compiler.processor;
 
 import com.equiperocket.compiler.MyLanguageParser;
 import com.equiperocket.compiler.validation.TypeValidator;
+import com.equiperocket.compiler.validation.VariableValidator;
 
 import java.util.Map;
 
 public class BoolExpressionProcessor {
 
     private final Map<String, String> variables;
+    private final Map<String, Boolean> variablesInitialized;
     private final ExpressionProcessor expressionProcessor;
 
-    public BoolExpressionProcessor(Map<String, String> variables) {
+    public BoolExpressionProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized) {
         this.variables = variables;
-        this.expressionProcessor = new ExpressionProcessor(variables);
+        this.variablesInitialized = variablesInitialized;
+        this.expressionProcessor = new ExpressionProcessor(variables, variablesInitialized);
     }
 
     public String processBoolExpression(MyLanguageParser.BoolExprContext ctx) {
@@ -75,9 +78,12 @@ public class BoolExpressionProcessor {
 
     private String processVariable(MyLanguageParser.BoolExprContext ctx) {
         String type = variables.get(ctx.ID().getText());
+        String varName = ctx.ID().getText();
 
         TypeValidator.validateBoolean(type, ctx);
 
-        return ctx.ID().getText();
+        VariableValidator.checkInitialized(varName, variablesInitialized, ctx);
+
+        return varName;
     }
 }
