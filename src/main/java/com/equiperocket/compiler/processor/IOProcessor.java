@@ -14,12 +14,14 @@ import java.util.Map;
 public class IOProcessor {
 
     private final Map<String, String> variables;
+    private final Map<String, Boolean> variablesInitialized;
     private final CodeBuilder codeBuilder;
     private final ExpressionProcessor expressionProcessor;
     private boolean isScannerInitialized;
 
     public IOProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
         this.variables = variables;
+        this.variablesInitialized = variablesInitialized;
         this.codeBuilder = codeBuilder;
         this.expressionProcessor = new ExpressionProcessor(variables, variablesInitialized);
         this.isScannerInitialized = false;
@@ -36,6 +38,8 @@ public class IOProcessor {
 
         String varType = variables.get(varName);
         String scannerMethod = TypeMapper.getScannerMethod(varType);
+
+        variablesInitialized.put(varName, true);
 
         codeBuilder.append(varName).append(" = ").append(scannerMethod).appendLine(";");
     }
