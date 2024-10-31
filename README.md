@@ -34,6 +34,16 @@ mvn clean compile
 mvn exec:java -Dexec.args="/caminho/para/o/arquivo.txt"
 ```
 
+5. Compile o código java gerado
+```bash
+javac Main.java
+```
+
+6. Execute o código java compilado
+```bash
+java Main
+```
+
 ## 👥 Membros da Equipe
 
 Esses são os integrantes da equipe responsáveis pelo andamento do projeto, indivíduos que de certa forma contribuíram para a realização do que foi solicitado:
