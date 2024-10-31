@@ -1,6 +1,6 @@
 package com.equiperocket.compiler.util;
 
-import com.equiperocket.compiler.constants.JavaConstants;
+import static com.equiperocket.compiler.constants.JavaConstants.*;
 
 public class CodeBuilder {
 
@@ -15,10 +15,10 @@ public class CodeBuilder {
     }
 
     public void appendClassHeader() {
-        appendLine(JavaConstants.CLASS_HEADER);
+        appendLine(CLASS_HEADER);
         increaseIndentation();
 
-        appendLine(JavaConstants.MAIN_METHOD_HEADER);
+        appendLine(MAIN_METHOD_HEADER);
         increaseIndentation();
     }
 
@@ -26,14 +26,14 @@ public class CodeBuilder {
         if (indentationLevel != 0) {
             decreaseIndentation();
 
-            appendLine(JavaConstants.CLOSE_BLOCK);
+            appendLine(CLOSE_BLOCK);
 
             appendClassFooter();
         }
     }
 
     public void appendScanner() {
-        appendLine(JavaConstants.SCANNER_INIT);
+        appendLine(SCANNER_INIT);
     }
 
     public CodeBuilder append(String text) {
@@ -56,7 +56,7 @@ public class CodeBuilder {
     }
 
     private String getIndentation() {
-        return JavaConstants.TAB.repeat(Math.max(0, indentationLevel));
+        return TAB.repeat(Math.max(0, indentationLevel));
     }
 
     public void increaseIndentation() {

@@ -46,9 +46,9 @@ public class CompilerApplication {
             String javaCode = listener.generateJavaCode();
 
             // Cria ou sobscreve a saída com o código java gerado
-            Files.write(Paths.get("Output.java"), javaCode.getBytes());
+            Files.write(Paths.get("Main.java"), javaCode.getBytes());
 
-            System.out.println("Código Java gerado com sucesso em Output.java");
+            System.out.println("Código Java gerado com sucesso em Main.java");
         } catch (IOException e) {
             System.err.println("Erro ao ler/escrever arquivo: " + e.getMessage());
         } catch (RecognitionException | SyntaxException e) {
