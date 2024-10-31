@@ -45,8 +45,7 @@ condition: boolExpr;
 // Expressões booleanas com operadores lógicos
 boolExpr: boolExpr 'OU' boolExpr
         | boolExpr 'E' boolExpr
-        | boolExpr '==' boolExpr
-        | boolExpr '!=' boolExpr
+        | boolExpr ('==' | '!=') boolExpr
         | 'NAO' boolExpr
         | relExpr
         | '(' boolExpr ')'
