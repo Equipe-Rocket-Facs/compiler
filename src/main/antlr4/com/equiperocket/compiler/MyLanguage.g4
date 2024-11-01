@@ -42,30 +42,42 @@ block: '{' commands '}';
 // Condição
 condition: boolExpr;
 
-// Expressões booleanas com operadores lógicos
-boolExpr: boolExpr 'OU' boolExpr
-        | boolExpr 'E' boolExpr
-        | boolExpr ('==' | '!=') boolExpr
-        | 'NAO' boolExpr
-        | relExpr
-        | '(' boolExpr ')'
-        | BOOL
-        | ID;
+// Expressões booleanas
+boolExpr: boolExpr 'OU' boolTerm
+        | boolTerm;
 
+boolTerm: boolTerm 'E' boolFactor
+        | boolFactor;
+
+boolFactor: boolFactor '==' boolExprBase
+          | boolFactor '!=' boolExprBase
+          | boolExprBase;
+
+boolExprBase: 'NAO' boolExpr
+            | relExpr
+            | BOOL
+            | ID
+            | '(' boolExpr ')';
+
+// Expressões relacionais
 relExpr: expr relOp expr;
 
 // Operadores relacionais
 relOp: '<' | '>' | '<=' | '>=' | '==' | '!=';
 
 // Expressões aritméticas, obedecendo precedência
-expr: '(' expr ')'
-    | expr mathOp expr
-    | NUM_INT
-    | NUM_DEC
-    | ID;
+expr: expr '+' term
+    | expr '-' term
+    | term;
 
-// Operadores matemáticos
-mathOp: ('*' | '/') | ('+' | '-');
+term: term '*' factor
+    | term '/' factor
+    | factor;
+
+factor: NUM_INT
+      | NUM_DEC
+      | ID
+      | '(' expr ')';
 
 // Tokens
 BOOL: 'VERDADEIRO' | 'FALSO';
