@@ -7,6 +7,7 @@ import com.equiperocket.compiler.validation.VariableValidator;
 import java.util.Map;
 
 public class BoolExpressionProcessor {
+
     private final Map<String, String> variables;
     private final Map<String, Boolean> variablesInitialized;
     private final ExpressionProcessor expressionProcessor;
@@ -18,6 +19,12 @@ public class BoolExpressionProcessor {
     }
 
     public String processBoolExpression(MyLanguageParser.BoolExprContext ctx) {
+        if (ctx.boolExpr() != null) {
+            String left = processBoolExpression(ctx.boolExpr());
+            String right = processBoolTerm(ctx.boolTerm());
+
+            return left + " || " + right;
+        }
         return processBoolTerm(ctx.boolTerm());
     }
 
@@ -25,6 +32,7 @@ public class BoolExpressionProcessor {
         if (ctx.boolTerm() != null) {
             String left = processBoolTerm(ctx.boolTerm());
             String right = processBoolFactor(ctx.boolFactor());
+
             return left + " && " + right;
         }
         return processBoolFactor(ctx.boolFactor());
@@ -35,6 +43,7 @@ public class BoolExpressionProcessor {
             String left = processBoolFactor(ctx.boolFactor());
             String operator = ctx.getChild(1).getText();
             String right = processBoolExprBase(ctx.boolExprBase());
+
             return left + " " + operator + " " + right;
         }
         return processBoolExprBase(ctx.boolExprBase());
@@ -59,6 +68,7 @@ public class BoolExpressionProcessor {
         String left = expressionProcessor.processExpression(ctx.expr(0));
         String operator = ctx.relOp().getText();
         String right = expressionProcessor.processExpression(ctx.expr(1));
+
         return left + " " + operator + " " + right;
     }
 
@@ -67,6 +77,7 @@ public class BoolExpressionProcessor {
         String varName = ctx.ID().getText();
 
         TypeValidator.validateBoolean(type, ctx);
+
         VariableValidator.checkInitialized(varName, variablesInitialized, ctx);
 
         return varName;

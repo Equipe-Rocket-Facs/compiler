@@ -3,10 +3,12 @@ package com.equiperocket.compiler.processor;
 import com.equiperocket.compiler.MyLanguageParser;
 import com.equiperocket.compiler.validation.TypeValidator;
 import com.equiperocket.compiler.validation.VariableValidator;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Map;
 
 public class ExpressionProcessor {
+
     private final Map<String, String> variables;
     private final Map<String, Boolean> variablesInitialized;
 
@@ -69,7 +71,7 @@ public class ExpressionProcessor {
         String leftType = getExpressionType(ctx.expr());
         String rightType = getTermType(ctx.term());
 
-        return getResultingType(leftType, rightType);
+        return getResultingType(leftType, rightType, ctx);
     }
 
     private String getTermType(MyLanguageParser.TermContext ctx) {
@@ -80,7 +82,7 @@ public class ExpressionProcessor {
         String leftType = getTermType(ctx.term());
         String rightType = getFactorType(ctx.factor());
 
-        return getResultingType(leftType, rightType);
+        return getResultingType(leftType, rightType, ctx);
     }
 
     private String getFactorType(MyLanguageParser.FactorContext ctx) {
@@ -96,14 +98,13 @@ public class ExpressionProcessor {
         return "";
     }
 
-    private String getResultingType(String type1, String type2) {
-        TypeValidator.validateNumeric(type1, null);
-        TypeValidator.validateNumeric(type2, null);
+    private String getResultingType(String type1, String type2, ParserRuleContext ctx) {
+        TypeValidator.validateNumeric(type1, ctx);
+        TypeValidator.validateNumeric(type2, ctx);
 
         if (type1.equals("double") || type2.equals("double")) {
             return "double";
         }
         return "int";
     }
-
 }
