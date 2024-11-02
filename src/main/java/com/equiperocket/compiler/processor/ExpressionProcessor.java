@@ -7,7 +7,6 @@ import com.equiperocket.compiler.validation.VariableValidator;
 import java.util.Map;
 
 public class ExpressionProcessor {
-
     private final Map<String, String> variables;
     private final Map<String, Boolean> variablesInitialized;
 
@@ -17,35 +16,43 @@ public class ExpressionProcessor {
     }
 
     public String processExpression(MyLanguageParser.ExprContext ctx) {
-        if (ctx.expr().size() == 1) {
-            return processParentheses(ctx);
-        } else if (ctx.expr().size() == 2) {
-            return processBinaryExpression(ctx);
-        } else if (ctx.NUM_INT() != null) {
-            return processInteger(ctx);
+        if (ctx.term() != null && ctx.expr() == null) {
+            return processTerm(ctx.term());
+        }
+
+        String left = processExpression(ctx.expr());
+        String operator = ctx.getChild(1).getText();
+        String right = processTerm(ctx.term());
+
+        return left + " " + operator + " " + right;
+    }
+
+    private String processTerm(MyLanguageParser.TermContext ctx) {
+        if (ctx.factor() != null && ctx.term() == null) {
+            return processFactor(ctx.factor());
+        }
+
+        String left = processTerm(ctx.term());
+        String operator = ctx.getChild(1).getText();
+        String right = processFactor(ctx.factor());
+
+        return left + " " + operator + " " + right;
+    }
+
+    private String processFactor(MyLanguageParser.FactorContext ctx) {
+        if (ctx.NUM_INT() != null) {
+            return ctx.NUM_INT().getText();
         } else if (ctx.NUM_DEC() != null) {
-            return processDecimal(ctx);
+            return ctx.NUM_DEC().getText();
         } else if (ctx.ID() != null) {
             return processVariable(ctx);
+        } else if (ctx.expr() != null) {
+            return "(" + processExpression(ctx.expr()) + ")";
         }
         return "";
     }
 
-    private String processParentheses(MyLanguageParser.ExprContext ctx) {
-        String expr = processExpression(ctx.expr(0));
-
-        return "(" + expr + ")";
-    }
-
-    private String processInteger(MyLanguageParser.ExprContext ctx) {
-        return ctx.NUM_INT().getText();
-    }
-
-    private String processDecimal(MyLanguageParser.ExprContext ctx) {
-        return ctx.NUM_DEC().getText();
-    }
-
-    private String processVariable(MyLanguageParser.ExprContext ctx) {
+    private String processVariable(MyLanguageParser.FactorContext ctx) {
         String varName = ctx.ID().getText();
 
         VariableValidator.checkDeclared(varName, variables, ctx);
@@ -54,48 +61,49 @@ public class ExpressionProcessor {
         return varName;
     }
 
-    private String processBinaryExpression(MyLanguageParser.ExprContext ctx) {
-        String left = processExpression((MyLanguageParser.ExprContext) ctx.getChild(0));
-        String operator = ctx.mathOp().getText();
-        String right = processExpression((MyLanguageParser.ExprContext) ctx.getChild(2));
-
-        return left + " " + operator + " " + right;
-    }
-
     public String getExpressionType(MyLanguageParser.ExprContext ctx) {
-        if (ctx.expr().size() == 2) {
-            return getBinaryExpressionType(ctx);
-        } else if (ctx.expr().size() == 1) {
-            return getExpressionType(ctx.expr(0));
-        } else if (ctx.NUM_INT() != null) {
-            return "int";
-        } else if (ctx.NUM_DEC() != null) {
-            return "double";
-        } else if (ctx.ID() != null) {
-            return getVariableType(ctx);
+        if (ctx.term() != null && ctx.expr() == null) {
+            return getTermType(ctx.term());
         }
-        return "";
-    }
 
-    private String getBinaryExpressionType(MyLanguageParser.ExprContext ctx) {
-        String leftType = getExpressionType((MyLanguageParser.ExprContext) ctx.getChild(0));
-        String rightType = getExpressionType((MyLanguageParser.ExprContext) ctx.getChild(2));
-
-        // Validação necessária em caso da presença de variáveis não numéricas na expressão
-        TypeValidator.validateNumeric(leftType, ctx);
-        TypeValidator.validateNumeric(rightType, ctx);
+        String leftType = getExpressionType(ctx.expr());
+        String rightType = getTermType(ctx.term());
 
         return getResultingType(leftType, rightType);
     }
 
+    private String getTermType(MyLanguageParser.TermContext ctx) {
+        if (ctx.factor() != null && ctx.term() == null) {
+            return getFactorType(ctx.factor());
+        }
+
+        String leftType = getTermType(ctx.term());
+        String rightType = getFactorType(ctx.factor());
+
+        return getResultingType(leftType, rightType);
+    }
+
+    private String getFactorType(MyLanguageParser.FactorContext ctx) {
+        if (ctx.NUM_INT() != null) {
+            return "int";
+        } else if (ctx.NUM_DEC() != null) {
+            return "double";
+        } else if (ctx.ID() != null) {
+            return variables.get(ctx.ID().getText());
+        } else if (ctx.expr() != null) {
+            return getExpressionType(ctx.expr());
+        }
+        return "";
+    }
+
     private String getResultingType(String type1, String type2) {
+        TypeValidator.validateNumeric(type1, null);
+        TypeValidator.validateNumeric(type2, null);
+
         if (type1.equals("double") || type2.equals("double")) {
             return "double";
         }
         return "int";
     }
 
-    private String getVariableType(MyLanguageParser.ExprContext ctx) {
-        return variables.get(ctx.ID().getText());
-    }
 }

@@ -75,14 +75,22 @@ public class MyLanguageToJava implements MyLanguageListener {
     @Override public void exitCondition(MyLanguageParser.ConditionContext ctx) {}
     @Override public void enterBoolExpr(MyLanguageParser.BoolExprContext ctx) {}
     @Override public void exitBoolExpr(MyLanguageParser.BoolExprContext ctx) {}
+    @Override public void enterBoolTerm(MyLanguageParser.BoolTermContext ctx) {}
+    @Override public void exitBoolTerm(MyLanguageParser.BoolTermContext ctx) {}
+    @Override public void enterBoolFactor(MyLanguageParser.BoolFactorContext ctx) {}
+    @Override public void exitBoolFactor(MyLanguageParser.BoolFactorContext ctx) {}
+    @Override public void enterBoolExprBase(MyLanguageParser.BoolExprBaseContext ctx) {}
+    @Override public void exitBoolExprBase(MyLanguageParser.BoolExprBaseContext ctx) {}
     @Override public void enterRelExpr(MyLanguageParser.RelExprContext ctx) {}
     @Override public void exitRelExpr(MyLanguageParser.RelExprContext ctx) {}
     @Override public void enterRelOp(MyLanguageParser.RelOpContext ctx) {}
     @Override public void exitRelOp(MyLanguageParser.RelOpContext ctx) {}
     @Override public void enterExpr(MyLanguageParser.ExprContext ctx) {}
     @Override public void exitExpr(MyLanguageParser.ExprContext ctx) {}
-    @Override public void enterMathOp(MyLanguageParser.MathOpContext ctx) {}
-    @Override public void exitMathOp(MyLanguageParser.MathOpContext ctx) {}
+    @Override public void enterTerm(MyLanguageParser.TermContext ctx) {}
+    @Override public void exitTerm(MyLanguageParser.TermContext ctx) {}
+    @Override public void enterFactor(MyLanguageParser.FactorContext ctx) {}
+    @Override public void exitFactor(MyLanguageParser.FactorContext ctx) {}
     @Override public void visitTerminal(TerminalNode terminalNode) {}
     @Override public void visitErrorNode(ErrorNode errorNode) {}
     @Override public void enterEveryRule(ParserRuleContext parserRuleContext) {}
