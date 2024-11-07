@@ -82,8 +82,8 @@ factor: NUM_INT
 // Tokens
 BOOL: 'VERDADEIRO' | 'FALSO';
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
-NUM_INT: [0-9]+;
-NUM_DEC: [0-9]+ '.' [0-9]+;
+NUM_INT: [-+]?[0-9]+;
+NUM_DEC: [-+]?[0-9]+ '.' [0-9]+;
 TEXT: '"' ( ~["\\] | '\\' . )* '"';
 
 // Ignorar espaços e comentários

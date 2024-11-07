@@ -1,9 +1,12 @@
 package com.equiperocket.compiler;
 
+import com.equiperocket.compiler.exception.LexicalException;
 import com.equiperocket.compiler.exception.SyntaxException;
+import com.equiperocket.compiler.listener.LexerErrorListener;
+import com.equiperocket.compiler.listener.ParserErrorListener;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.IOException;
@@ -24,20 +27,25 @@ public class CompilerApplication {
             // Extrai o código fonte do arquivo passado como argumento
             String sourceCode = new String(Files.readAllBytes(Paths.get(args[0])));
 
-            // Faz a análise léxica
+            // Cria um lexer para analisar o código fonte e substitui os listeners de erro padrão
             MyLanguageLexer lexer = new MyLanguageLexer(CharStreams.fromString(sourceCode));
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            MyLanguageParser parser = new MyLanguageParser(tokens);
+            BaseErrorListener errorListener = new LexerErrorListener();
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(errorListener);
 
-            // Substitui o ouvinte padrão para erros de sintaxe
+            // Cria um fluxo de tokens a partir do lexer
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+            // Cria um parser para interpretar os tokens e substitui os listeners de erro padrão
+            MyLanguageParser parser = new MyLanguageParser(tokens);
+            errorListener = new ParserErrorListener();
             parser.removeErrorListeners();
-            SyntaxErrorListener errorListener = new SyntaxErrorListener();
             parser.addErrorListener(errorListener);
 
-            // Faz a análise sintática
+            // Analisa o código fonte e gera uma árvore de parse
             MyLanguageParser.ProgContext tree = parser.prog();
 
-            // Gera o código Java
+            // Gera o código Java enquanto percorre a árvore de parse com o listener
             MyLanguageToJava listener = new MyLanguageToJava();
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.walk(listener, tree);
@@ -50,11 +58,13 @@ public class CompilerApplication {
 
             System.out.println("Código Java gerado com sucesso em Main.java");
         } catch (IOException e) {
-            System.err.println("Erro ao ler/escrever arquivo: " + e.getMessage());
-        } catch (RecognitionException | SyntaxException e) {
-            System.err.println("Erro de sintaxe: " + e.getMessage());
+            System.err.println("Erro de I/O: " + e.getMessage());
+        } catch (LexicalException e) {
+            System.err.println("Erro léxico: " + e.getMessage());
+        } catch (SyntaxException e) {
+            System.err.println("Erro sintático: " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Erro: " + e.getMessage());
+            System.err.println("Erro semântico: " + e.getMessage());
         }
     }
 }

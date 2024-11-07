@@ -2,7 +2,6 @@ package com.equiperocket.compiler;
 
 import com.equiperocket.compiler.processor.CommandProcessor;
 import com.equiperocket.compiler.processor.DeclarationProcessor;
-import com.equiperocket.compiler.processor.ProgramProcessor;
 import com.equiperocket.compiler.util.CodeBuilder;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -14,7 +13,6 @@ import java.util.Map;
 public class MyLanguageToJava implements MyLanguageListener {
 
     private final CodeBuilder codeBuilder;
-    private final ProgramProcessor programProcessor;
     private final DeclarationProcessor declarationProcessor;
     private final CommandProcessor commandProcessor;
 
@@ -22,19 +20,18 @@ public class MyLanguageToJava implements MyLanguageListener {
         this.codeBuilder = new CodeBuilder();
         Map<String, String> variables = new HashMap<>();
         Map<String, Boolean> variablesInitialized = new HashMap<>();
-        this.programProcessor = new ProgramProcessor(codeBuilder);
         this.declarationProcessor = new DeclarationProcessor(variables, variablesInitialized, codeBuilder);
         this.commandProcessor = new CommandProcessor(variables, variablesInitialized, codeBuilder);
     }
 
     @Override
     public void enterProg(MyLanguageParser.ProgContext ctx) {
-        programProcessor.processBeginProgram(ctx);
+        codeBuilder.appendClassHeader();
     }
 
     @Override
     public void exitProg(MyLanguageParser.ProgContext ctx) {
-        programProcessor.processEndProgram(ctx);
+        codeBuilder.appendClassFooter();
     }
 
     @Override
