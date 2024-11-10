@@ -25,12 +25,12 @@ command : readInput
 // Comando de leitura
 readInput: 'leia' '(' ID ')';
 // Comando de escrita
-writeOutput: 'escreva' '(' (TEXT | BOOL | expr) ('+' (TEXT | BOOL | expr))* ')';
+writeOutput: 'escreva' '(' (TEXT | expr | boolExpr) ('+' (TEXT | expr | boolExpr))* ')';
 // Atribuição
-attribution: ID '=' (expr | boolExpr | TEXT);
+attribution: ID '=' (TEXT | expr | boolExpr);
 
 // Estrutura if else
-ifStmt: 'if' '(' condition ')' block (('if else' '(' condition ')' block)* 'else' block)?;
+ifStmt: 'if' '(' condition ')' block (('else if' '(' condition ')' block)* 'else' block)?;
 // Estrutura while
 whileStmt: 'while' '(' condition ')' block;
 // Estrutura for

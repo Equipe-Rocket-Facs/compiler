@@ -16,7 +16,7 @@ media = (nota1 + nota2 + nota3) / 3
 
 if (media >= 7.0) {
     situacao = "Aprovado"
-} if else (media >= 5.0) {
+} else if (media >= 5.0) {
     situacao = "Recuperação"
 } else {
     situacao = "Reprovado"

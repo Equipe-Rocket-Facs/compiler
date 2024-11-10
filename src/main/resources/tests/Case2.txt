@@ -11,7 +11,7 @@ leia(y)
 
 if (x > y) {
     escreva(x + " é maior do que " + y)
-} if else (x < y) {
+} else if (x < y) {
     escreva(x + " é menor do que " + y)
 } else {
     escreva(x + " e " + y + " são equivalentes")

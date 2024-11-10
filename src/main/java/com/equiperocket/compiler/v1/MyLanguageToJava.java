@@ -1,8 +1,10 @@
-package com.equiperocket.compiler;
+package com.equiperocket.compiler.v1;
 
-import com.equiperocket.compiler.processor.CommandProcessor;
-import com.equiperocket.compiler.processor.DeclarationProcessor;
-import com.equiperocket.compiler.util.CodeBuilder;
+import com.equiperocket.compiler.MyLanguageListener;
+import com.equiperocket.compiler.MyLanguageParser;
+import com.equiperocket.compiler.v1.processor.CommandProcessor;
+import com.equiperocket.compiler.v1.processor.DeclarationProcessor;
+import com.equiperocket.compiler.v1.util.CodeBuilder;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;

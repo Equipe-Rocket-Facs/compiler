@@ -1,8 +1,8 @@
-package com.equiperocket.compiler.validation;
+package com.equiperocket.compiler.v1.validation;
 
-import com.equiperocket.compiler.exception.DuplicateVariableException;
-import com.equiperocket.compiler.exception.UndeclaredVariableException;
-import com.equiperocket.compiler.exception.UninitializedVariableException;
+import com.equiperocket.compiler.v1.exception.DuplicateVariableException;
+import com.equiperocket.compiler.v1.exception.UndeclaredVariableException;
+import com.equiperocket.compiler.v1.exception.UninitializedVariableException;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Map;

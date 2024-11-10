@@ -1,6 +1,6 @@
-package com.equiperocket.compiler.util;
+package com.equiperocket.compiler.v1.util;
 
-import static com.equiperocket.compiler.constants.JavaConstants.*;
+import static com.equiperocket.compiler.v1.constants.JavaConstants.*;
 
 public class CodeBuilder {
 

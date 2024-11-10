@@ -1,7 +1,7 @@
-package com.equiperocket.compiler.processor;
+package com.equiperocket.compiler.v1.processor;
 
 import com.equiperocket.compiler.MyLanguageParser;
-import com.equiperocket.compiler.util.CodeBuilder;
+import com.equiperocket.compiler.v1.util.CodeBuilder;
 
 import java.util.Map;
 

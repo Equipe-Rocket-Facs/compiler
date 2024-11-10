@@ -1,8 +1,8 @@
-package com.equiperocket.compiler.processor;
+package com.equiperocket.compiler.v1.processor;
 
 import com.equiperocket.compiler.MyLanguageParser;
-import com.equiperocket.compiler.validation.TypeValidator;
-import com.equiperocket.compiler.validation.VariableValidator;
+import com.equiperocket.compiler.v1.validation.TypeValidator;
+import com.equiperocket.compiler.v1.validation.VariableValidator;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Map;

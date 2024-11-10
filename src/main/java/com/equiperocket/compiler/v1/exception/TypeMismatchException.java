@@ -1,4 +1,4 @@
-package com.equiperocket.compiler.exception;
+package com.equiperocket.compiler.v1.exception;
 
 public class TypeMismatchException extends CompilationException {
 

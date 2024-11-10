@@ -20,7 +20,7 @@ for (contador = 1; contador <= maxTentativas E acertou == FALSO; contador = cont
     if (tentativa == segredo) {
         escreva("Parabéns! Você acertou em " + contador + " tentativas")
         acertou = VERDADEIRO
-    } if else (tentativa < segredo) {
+    } else if (tentativa < segredo) {
         escreva("O número é maior")
     } else {
         escreva("O número é menor")

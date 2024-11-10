@@ -1,4 +1,4 @@
-package com.equiperocket.compiler.constants;
+package com.equiperocket.compiler.v1.constants;
 
 public final class JavaConstants {
 

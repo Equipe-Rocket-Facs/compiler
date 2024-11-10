@@ -1,9 +1,9 @@
-package com.equiperocket.compiler.processor;
+package com.equiperocket.compiler.v1.processor;
 
 import com.equiperocket.compiler.MyLanguageParser;
-import com.equiperocket.compiler.util.CodeBuilder;
-import com.equiperocket.compiler.util.TypeMapper;
-import com.equiperocket.compiler.validation.VariableValidator;
+import com.equiperocket.compiler.v1.util.CodeBuilder;
+import com.equiperocket.compiler.v1.util.TypeMapper;
+import com.equiperocket.compiler.v1.validation.VariableValidator;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;

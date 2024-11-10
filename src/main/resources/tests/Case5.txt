@@ -10,13 +10,13 @@ leia(idade)
 
 if (idade < 0) {
     escreva("Idade inválida")
-} if else (idade < 12) {
+} else if (idade < 12) {
     categoria = "Criança"
     escreva("Você é " + categoria)
-} if else (idade < 18) {
+} else if (idade < 18) {
     categoria = "Adolescente"
     escreva("Você é " + categoria)
-} if else (idade < 60) {
+} else if (idade < 60) {
     categoria = "Adulto"
     escreva("Você é " + categoria)
 } else {

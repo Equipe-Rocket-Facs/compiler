@@ -1,7 +1,7 @@
-package com.equiperocket.compiler.validation;
+package com.equiperocket.compiler.v1.validation;
 
-import com.equiperocket.compiler.exception.NotANumberException;
-import com.equiperocket.compiler.exception.TypeMismatchException;
+import com.equiperocket.compiler.v1.exception.NotANumberException;
+import com.equiperocket.compiler.v1.exception.TypeMismatchException;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class TypeValidator {

@@ -1,9 +1,9 @@
-package com.equiperocket.compiler.util;
+package com.equiperocket.compiler.v1.util;
 
-import static com.equiperocket.compiler.constants.JavaConstants.TYPE_BOOLEAN;
-import static com.equiperocket.compiler.constants.JavaConstants.TYPE_DOUBLE;
-import static com.equiperocket.compiler.constants.JavaConstants.TYPE_INT;
-import static com.equiperocket.compiler.constants.JavaConstants.TYPE_STRING;
+import static com.equiperocket.compiler.v1.constants.JavaConstants.TYPE_BOOLEAN;
+import static com.equiperocket.compiler.v1.constants.JavaConstants.TYPE_DOUBLE;
+import static com.equiperocket.compiler.v1.constants.JavaConstants.TYPE_INT;
+import static com.equiperocket.compiler.v1.constants.JavaConstants.TYPE_STRING;
 
 public class TypeMapper {
 

@@ -1,6 +1,6 @@
-package com.equiperocket.compiler.listener;
+package com.equiperocket.compiler.v1.listener;
 
-import com.equiperocket.compiler.exception.SyntaxException;
+import com.equiperocket.compiler.v1.exception.SyntaxException;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;

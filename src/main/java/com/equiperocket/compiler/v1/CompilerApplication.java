@@ -1,9 +1,11 @@
-package com.equiperocket.compiler;
+package com.equiperocket.compiler.v1;
 
-import com.equiperocket.compiler.exception.LexicalException;
-import com.equiperocket.compiler.exception.SyntaxException;
-import com.equiperocket.compiler.listener.LexerErrorListener;
-import com.equiperocket.compiler.listener.ParserErrorListener;
+import com.equiperocket.compiler.MyLanguageLexer;
+import com.equiperocket.compiler.MyLanguageParser;
+import com.equiperocket.compiler.v1.exception.LexicalException;
+import com.equiperocket.compiler.v1.exception.SyntaxException;
+import com.equiperocket.compiler.v1.listener.LexerErrorListener;
+import com.equiperocket.compiler.v1.listener.ParserErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;

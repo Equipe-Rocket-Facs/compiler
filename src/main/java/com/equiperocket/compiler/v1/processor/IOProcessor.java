@@ -1,9 +1,9 @@
-package com.equiperocket.compiler.processor;
+package com.equiperocket.compiler.v1.processor;
 
 import com.equiperocket.compiler.MyLanguageParser;
-import com.equiperocket.compiler.util.CodeBuilder;
-import com.equiperocket.compiler.util.TypeMapper;
-import com.equiperocket.compiler.validation.VariableValidator;
+import com.equiperocket.compiler.v1.util.CodeBuilder;
+import com.equiperocket.compiler.v1.util.TypeMapper;
+import com.equiperocket.compiler.v1.validation.VariableValidator;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -17,6 +17,7 @@ public class IOProcessor {
     private final Map<String, Boolean> variablesInitialized;
     private final CodeBuilder codeBuilder;
     private final ExpressionProcessor expressionProcessor;
+    private final BoolExpressionProcessor boolExpressionProcessor;
     private boolean isScannerInitialized;
 
     public IOProcessor(Map<String, String> variables, Map<String, Boolean> variablesInitialized, CodeBuilder codeBuilder) {
@@ -24,6 +25,7 @@ public class IOProcessor {
         this.variablesInitialized = variablesInitialized;
         this.codeBuilder = codeBuilder;
         this.expressionProcessor = new ExpressionProcessor(variables, variablesInitialized);
+        this.boolExpressionProcessor = new BoolExpressionProcessor(variables, variablesInitialized);
         this.isScannerInitialized = false;
     }
 
@@ -58,24 +60,22 @@ public class IOProcessor {
             ParseTree child = ctx.getChild(i);
 
             if (child instanceof TerminalNode) {
-                processTerminalNode((TerminalNode) child, outputParts);
+                outputParts.add(child.getText());
             } else if (child instanceof MyLanguageParser.ExprContext) {
                 processExpression((MyLanguageParser.ExprContext) child, outputParts);
+            } else if (child instanceof MyLanguageParser.BoolExprContext) {
+                processBoolExpression((MyLanguageParser.BoolExprContext) child, outputParts);
             }
         }
 
         codeBuilder.append("System.out.println(").append(String.join(" + ", outputParts)).appendLine(");");
     }
 
-    private void processTerminalNode(TerminalNode node, List<String> parts) {
-        if (node.getSymbol().getType() == MyLanguageParser.TEXT) {
-            parts.add(node.getText());
-        } else if (node.getSymbol().getType() == MyLanguageParser.BOOL) {
-            parts.add(node.getText().equals("VERDADEIRO") ? "true" : "false");
-        }
-    }
-
     private void processExpression(MyLanguageParser.ExprContext child, List<String> parts) {
         parts.add(expressionProcessor.processExpression(child));
+    }
+
+    private void processBoolExpression(MyLanguageParser.BoolExprContext child, List<String> parts) {
+        parts.add(boolExpressionProcessor.processBoolExpression(child));
     }
 }
