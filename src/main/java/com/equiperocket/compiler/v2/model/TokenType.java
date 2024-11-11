@@ -21,11 +21,15 @@ public enum TokenType {
     WHILE("while"),
     FOR("for"),
 
+    OU("OU"),
+    E("E"),
+    NAO("NAO"),
+
     VERDADEIRO("VERDADEIRO"),
     FALSO("FALSO"),
     ID("[a-zA-Z_][a-zA-Z_0-9]*"),
-    NUM_INT("[-+]?[0-9]+"),
     NUM_DEC("[-+]?[0-9]+\\.[0-9]+"),
+    NUM_INT("[-+]?[0-9]+"),
     STRING("\"(\\\\.|[^\"])*\""),
 
     PLUS("\\+"),
@@ -39,9 +43,6 @@ public enum TokenType {
     EQ("=="),
     ASSIGN("="),
     NEQ("!="),
-    OU("OU"),
-    E("E"),
-    NAO("NAO"),
     LPAREN("\\("),
     RPAREN("\\)"),
     LBRACE("\\{"),
