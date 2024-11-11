@@ -115,8 +115,7 @@ public class Parser extends ParserAux {
             match(TokenType.STRING);
         } else {
             // Nao aceitar nada alem de expr, boolExpr ou String
-            throw new SyntaxException("Invalid attribution value at line " +
-                    peek().getLine() + ", column " + peek().getColumn());
+            error("Invalid attribution value");
         }
     }
 
@@ -184,8 +183,7 @@ public class Parser extends ParserAux {
 
     private void boolExprBase() {
         if (!validator.checkBoolExpr()) {
-            throw new SyntaxException("Invalid bool expression at line " +
-                    peek().getLine() + ", column " + peek().getColumn());
+            error("Invalid bool expression");
         }
 
         if (match(TokenType.NAO)) {
@@ -224,8 +222,7 @@ public class Parser extends ParserAux {
 
     private void factor() {
         if (!validator.checkExpr()) {
-            throw new SyntaxException("Invalid expression at line " +
-                    peek().getLine() + ", column " + peek().getColumn());
+            error("Invalid expression");
         }
 
         // Tenta consumir o '(' primeiro, depois tenta com numeros e id
@@ -236,5 +233,9 @@ public class Parser extends ParserAux {
             expr(false);
             matchReq(TokenType.RPAREN);
         }
+    }
+
+    private void error(String msg) {
+        throw new SyntaxException(msg, peek().getLine(), peek().getColumn());
     }
 }

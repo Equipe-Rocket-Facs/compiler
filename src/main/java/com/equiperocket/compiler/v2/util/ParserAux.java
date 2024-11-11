@@ -27,8 +27,10 @@ public class ParserAux {
     protected void matchReq(TokenType type) {
         if (!match(type)) {
             Token token = peek();
-            throw new SyntaxException("Expecting " + type + " but found " + token.getType() +
-                    " at line " + token.getLine() + ", column " + token.getColumn());
+            throw new SyntaxException(
+                    "Expecting " + type + " but found " + token.getType(),
+                    token.getLine(),
+                    token.getColumn());
         }
     }
 
