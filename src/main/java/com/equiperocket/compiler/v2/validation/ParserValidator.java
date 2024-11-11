@@ -28,13 +28,21 @@ public class ParserValidator {
     }
 
     public boolean checkBoolExpr() {
+        if (checkParen()) {
+            parserAux.saveCheckpoint();
+            parserAux.advance();
+            boolean isBoolExpr = checkBoolExpr();
+            parserAux.restoreCheckpoint();
+            return isBoolExpr;
+        }
+
         return parserAux.check(TokenType.NAO) ||
                 checkNextRelOp() ||
-                parserAux.check(TokenType.BOOL) ||
-                parserAux.check(TokenType.LPAREN);
+                parserAux.check(TokenType.VERDADEIRO) ||
+                parserAux.check(TokenType.FALSO);
     }
 
-    public boolean checkNextRelOp() {
+    private boolean checkNextRelOp() {
         return parserAux.checkNext(TokenType.LESS) ||
                 parserAux.checkNext(TokenType.GREATER) ||
                 parserAux.checkNext(TokenType.LEQ) ||
@@ -43,17 +51,42 @@ public class ParserValidator {
                 parserAux.checkNext(TokenType.NEQ);
     }
 
-    public boolean checkNextMathOp() {
-        return parserAux.checkNext(TokenType.PLUS) ||
-                parserAux.checkNext(TokenType.MINUS) ||
-                parserAux.checkNext(TokenType.MULT) ||
-                parserAux.checkNext(TokenType.DIV);
+    public boolean checkRelExpr() {
+        return checkRelOp() && checkNextExpr();
+    }
+
+    private boolean checkRelOp() {
+        return parserAux.check(TokenType.LESS) ||
+                parserAux.check(TokenType.GREATER) ||
+                parserAux.check(TokenType.LEQ) ||
+                parserAux.check(TokenType.GEQ) ||
+                parserAux.check(TokenType.EQ) ||
+                parserAux.check(TokenType.NEQ);
+    }
+
+    private boolean checkNextExpr() {
+        parserAux.saveCheckpoint();
+        parserAux.advance();
+        boolean isExpr = checkExpr();
+        parserAux.restoreCheckpoint();
+        return isExpr;
     }
 
     public boolean checkExpr() {
+        if (checkParen()) {
+            parserAux.saveCheckpoint();
+            parserAux.advance();
+            boolean isExpr = checkExpr();
+            parserAux.restoreCheckpoint();
+            return isExpr;
+        }
+
         return parserAux.check(TokenType.NUM_INT) ||
                 parserAux.check(TokenType.NUM_DEC) ||
-                parserAux.check(TokenType.ID) ||
-                parserAux.check(TokenType.LPAREN);
+                parserAux.check(TokenType.ID);
+    }
+
+    private boolean checkParen() {
+        return parserAux.check(TokenType.LPAREN);
     }
 }

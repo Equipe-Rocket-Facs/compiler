@@ -1,6 +1,6 @@
 package com.equiperocket.compiler.v2;
 
-import com.equiperocket.compiler.v2.exception.LexicalException;
+import com.equiperocket.compiler.v2.exception.SyntaxException;
 import com.equiperocket.compiler.v2.model.Symbol;
 import com.equiperocket.compiler.v2.model.Token;
 import com.equiperocket.compiler.v2.model.TokenType;
@@ -55,14 +55,7 @@ public class Parser extends ParserAux {
 
     private TokenType type() {
         TokenType type = peek().getType();
-
-        if (!match(TokenType.INTEIRO) &&
-                !match(TokenType.DECIMAL) &&
-                !match(TokenType.TEXTO) &&
-                !match(TokenType.BOOL)
-        ) {
-            throw new LexicalException("Invalid type");
-        }
+        match(type);
         return type;
     }
 
@@ -85,8 +78,6 @@ public class Parser extends ParserAux {
             whileStmt();
         } else if (match(TokenType.FOR)) {
             forStmt();
-        } else {
-            throw new LexicalException("Invalid command");
         }
     }
 
@@ -102,8 +93,10 @@ public class Parser extends ParserAux {
         do {
             if (validator.checkBoolExpr()) {
                 boolExpr();
-            } else if (!match(TokenType.STRING)) {
-                expr();
+            } else if (validator.checkExpr()) {
+                expr(true);
+            } else if (check(TokenType.STRING)) {
+                match(TokenType.STRING);
             }
         } while (match(TokenType.PLUS));
 
@@ -116,8 +109,14 @@ public class Parser extends ParserAux {
 
         if (validator.checkBoolExpr()) {
             boolExpr();
-        } else if (!match(TokenType.STRING)) {
-            expr();
+        } else if (validator.checkExpr()) {
+            expr(false);
+        } else if (check(TokenType.STRING)) {
+            match(TokenType.STRING);
+        } else {
+            // Nao aceitar nada alem de expr, boolExpr ou String
+            throw new SyntaxException("Invalid attribution value at line " +
+                    peek().getLine() + ", column " + peek().getColumn());
         }
     }
 
@@ -185,7 +184,8 @@ public class Parser extends ParserAux {
 
     private void boolExprBase() {
         if (!validator.checkBoolExpr()) {
-            throw new LexicalException("Invalid bool expression");
+            throw new SyntaxException("Invalid bool expression at line " +
+                    peek().getLine() + ", column " + peek().getColumn());
         }
 
         if (match(TokenType.NAO)) {
@@ -193,32 +193,26 @@ public class Parser extends ParserAux {
         } else if (match(TokenType.LPAREN)) {
             boolExpr();
             matchReq(TokenType.RPAREN);
-        } else if (!match(TokenType.BOOL) && validator.checkNextRelOp()) {
-            relExpr();
-        }
-    }
+        } else if (!match(TokenType.VERDADEIRO) && !match(TokenType.FALSO)) {
+            // O boolExpr pode ser somente um ID ou entao uma relExpr
+            expr(false);
 
-    private void relExpr() {
-        expr();
-        relOp();
-        expr();
+            if (validator.checkRelExpr()) {
+                relOp();
+                expr(false);
+            }
+        }
     }
 
     private void relOp() {
-        if (!match(TokenType.LESS) &&
-                !match(TokenType.GREATER) &&
-                !match(TokenType.LEQ) &&
-                !match(TokenType.GEQ) &&
-                !match(TokenType.EQ) &&
-                !match(TokenType.NEQ)
-        ) {
-            throw new LexicalException("Invalid relational operator");
-        }
+        TokenType operator = peek().getType();
+        match(operator);
     }
 
-    private void expr() {
+    private void expr(boolean writeCalling) {
         do {
             term();
+            if (writeCalling) return;
         } while (match(TokenType.PLUS) || match(TokenType.MINUS));
     }
 
@@ -230,14 +224,16 @@ public class Parser extends ParserAux {
 
     private void factor() {
         if (!validator.checkExpr()) {
-            throw new LexicalException("Invalid expression");
+            throw new SyntaxException("Invalid expression at line " +
+                    peek().getLine() + ", column " + peek().getColumn());
         }
 
+        // Tenta consumir o '(' primeiro, depois tenta com numeros e id
         if (match(TokenType.LPAREN) ||
                 !match(TokenType.NUM_INT) &&
                         !match(TokenType.NUM_DEC) &&
                         !match(TokenType.ID)) {
-            expr();
+            expr(false);
             matchReq(TokenType.RPAREN);
         }
     }

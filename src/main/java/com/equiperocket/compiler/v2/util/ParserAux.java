@@ -1,6 +1,6 @@
 package com.equiperocket.compiler.v2.util;
 
-import com.equiperocket.compiler.v2.exception.LexicalException;
+import com.equiperocket.compiler.v2.exception.SyntaxException;
 import com.equiperocket.compiler.v2.model.Token;
 import com.equiperocket.compiler.v2.model.TokenType;
 
@@ -10,6 +10,7 @@ public class ParserAux {
 
     private List<Token> tokens;
     private int current = 0;
+    private int checkpoint = 0;
 
     public ParserAux(List<Token> tokens) {
         this.tokens = tokens;
@@ -25,7 +26,9 @@ public class ParserAux {
 
     protected void matchReq(TokenType type) {
         if (!match(type)) {
-            throw new LexicalException("Expecting: " + type);
+            Token token = peek();
+            throw new SyntaxException("Expecting " + type + " but found " + token.getType() +
+                    " at line " + token.getLine() + ", column " + token.getColumn());
         }
     }
 
@@ -39,7 +42,15 @@ public class ParserAux {
         return peekNext().getType().equals(type);
     }
 
-    protected void advance() {
+    public void saveCheckpoint() {
+        checkpoint = current;
+    }
+
+    public void restoreCheckpoint() {
+        current = checkpoint;
+    }
+
+    public void advance() {
         current++;
     }
 
