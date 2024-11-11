@@ -60,7 +60,7 @@ public class Lexer {
 
             // Checagem para tokens nao validos
             if (!matched) {
-                throw new LexicalException("Unrecognized token at line", line, column);
+                throw new LexicalException("Unrecognized token", line, column);
             }
         }
         return tokens;
