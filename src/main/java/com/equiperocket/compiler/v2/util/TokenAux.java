@@ -6,17 +6,17 @@ import com.equiperocket.compiler.v2.model.TokenType;
 
 import java.util.List;
 
-public class ParserAux {
+public class TokenAux {
 
     private List<Token> tokens;
     private int current = 0;
     private int checkpoint = 0;
 
-    public ParserAux(List<Token> tokens) {
+    public TokenAux(List<Token> tokens) {
         this.tokens = tokens;
     }
 
-    protected boolean match(TokenType type) {
+    public boolean match(TokenType type) {
         if (check(type)) {
             advance();
             return true;
@@ -24,7 +24,7 @@ public class ParserAux {
         return false;
     }
 
-    protected void matchReq(TokenType type) {
+    public void matchReq(TokenType type) {
         if (!match(type)) {
             Token token = peek();
             throw new SyntaxException(
@@ -56,15 +56,15 @@ public class ParserAux {
         current++;
     }
 
-    protected boolean isAtEnd() {
+    private boolean isAtEnd() {
         return current >= tokens.size();
     }
 
-    protected Token peek() {
+    public Token peek() {
         return tokens.get(current);
     }
 
-    protected Token peekNext() {
+    private Token peekNext() {
         return tokens.get(current + 1);
     }
 }

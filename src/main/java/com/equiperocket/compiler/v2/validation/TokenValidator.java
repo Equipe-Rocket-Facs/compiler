@@ -1,14 +1,19 @@
 package com.equiperocket.compiler.v2.validation;
 
+import com.equiperocket.compiler.v2.model.Symbol;
 import com.equiperocket.compiler.v2.model.TokenType;
-import com.equiperocket.compiler.v2.util.ParserAux;
+import com.equiperocket.compiler.v2.util.TokenAux;
 
-public class ParserValidator {
+import java.util.Map;
 
-    private ParserAux parserAux;
+public class TokenValidator {
 
-    public ParserValidator(ParserAux parserAux) {
+    private TokenAux parserAux;
+    private Map<String, Symbol> symbolTable;
+
+    public TokenValidator(TokenAux parserAux, Map<String, Symbol> symbolTable) {
         this.parserAux = parserAux;
+        this.symbolTable = symbolTable;
     }
 
     public boolean checkType() {
@@ -28,18 +33,15 @@ public class ParserValidator {
     }
 
     public boolean checkBoolExpr() {
-        if (checkParen()) {
-            parserAux.saveCheckpoint();
-            parserAux.advance();
-            boolean isBoolExpr = checkBoolExpr();
-            parserAux.restoreCheckpoint();
-            return isBoolExpr;
-        }
+        if (checkParen()) return checkNextExpr("boolExpr");
 
         return parserAux.check(TokenType.NAO) ||
                 checkNextRelOp() ||
                 parserAux.check(TokenType.VERDADEIRO) ||
-                parserAux.check(TokenType.FALSO);
+                parserAux.check(TokenType.FALSO) ||
+                // Resultaria em erros, pois iria permitir uma expr entre ID e um tipo invalido como String
+//                parserAux.check(TokenType.ID);
+                checkBoolVar(); // Faz parte do semantico, mas faz-se necessario
     }
 
     private boolean checkNextRelOp() {
@@ -51,8 +53,18 @@ public class ParserValidator {
                 parserAux.checkNext(TokenType.NEQ);
     }
 
+    // Permite IDs como condicao em estruturas if, while e for, alem de imprimir no escreva
+    private boolean checkBoolVar() {
+        if (parserAux.check(TokenType.ID)) {
+            String idName = parserAux.peek().getValue();
+            Symbol symbol = symbolTable.get(idName);
+            return symbol != null && symbol.getType().equals(TokenType.BOOL);
+        }
+        return false;
+    }
+
     public boolean checkRelExpr() {
-        return checkRelOp() && checkNextExpr();
+        return checkRelOp() && checkNextExpr("expr");
     }
 
     private boolean checkRelOp() {
@@ -64,22 +76,8 @@ public class ParserValidator {
                 parserAux.check(TokenType.NEQ);
     }
 
-    private boolean checkNextExpr() {
-        parserAux.saveCheckpoint();
-        parserAux.advance();
-        boolean isExpr = checkExpr();
-        parserAux.restoreCheckpoint();
-        return isExpr;
-    }
-
     public boolean checkExpr() {
-        if (checkParen()) {
-            parserAux.saveCheckpoint();
-            parserAux.advance();
-            boolean isExpr = checkExpr();
-            parserAux.restoreCheckpoint();
-            return isExpr;
-        }
+        if (checkParen()) return checkNextExpr("expr");
 
         return parserAux.check(TokenType.NUM_INT) ||
                 parserAux.check(TokenType.NUM_DEC) ||
@@ -88,5 +86,20 @@ public class ParserValidator {
 
     private boolean checkParen() {
         return parserAux.check(TokenType.LPAREN);
+    }
+
+    private boolean checkNextExpr(String whoIsCalling) {
+        parserAux.saveCheckpoint();
+        parserAux.advance();
+
+        boolean isExpr;
+        if (whoIsCalling.equals("boolExpr")) {
+            isExpr = checkBoolExpr();
+        } else {
+            isExpr = checkExpr();
+        }
+
+        parserAux.restoreCheckpoint();
+        return isExpr;
     }
 }
