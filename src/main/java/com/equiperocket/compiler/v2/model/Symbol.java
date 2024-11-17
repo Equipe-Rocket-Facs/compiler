@@ -3,7 +3,8 @@ package com.equiperocket.compiler.v2.model;
 public class Symbol {
 
     private TokenType type;
-    private Object value;
+    private boolean initialized = false;
+
 
     public Symbol() {
     }
@@ -16,11 +17,12 @@ public class Symbol {
         this.type = type;
     }
 
-    public Object getValue() {
-        return value;
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
     }
 }

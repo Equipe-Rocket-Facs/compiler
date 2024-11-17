@@ -56,7 +56,7 @@ public class TokenAux {
         current++;
     }
 
-    private boolean isAtEnd() {
+    public boolean isAtEnd() {
         return current >= tokens.size();
     }
 
@@ -64,7 +64,15 @@ public class TokenAux {
         return tokens.get(current);
     }
 
-    private Token peekNext() {
+    public Token peekNext() {
         return tokens.get(current + 1);
+    }
+
+    public Token peekAfter() {
+        return tokens.get(current - 1);
+    }
+
+    public boolean hasNext() {
+        return current + 1 < tokens.size();
     }
 }
