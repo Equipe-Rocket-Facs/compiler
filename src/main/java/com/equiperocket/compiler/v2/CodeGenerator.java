@@ -6,6 +6,7 @@ import com.equiperocket.compiler.v2.model.Token;
 import com.equiperocket.compiler.v2.model.TokenType;
 import com.equiperocket.compiler.v2.util.TokenAux;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -114,14 +115,26 @@ public class CodeGenerator {
         Token variableToken = tokenAux.peek();
         tokenAux.match(TokenType.ID);
 
+        Symbol symbol = getSymbolAndMarkInitialized(variableToken);
+
+        generatedCode.append(formatInputRead(variableToken, symbol));
+        tokenAux.match(TokenType.RPAREN);
+    }
+
+    private Symbol getSymbolAndMarkInitialized(Token variableToken) {
         Symbol symbol = symbolTable.get(variableToken.getValue());
         if (symbol != null) {
             symbol.setInitialized(true);
         }
+        return symbol;
+    }
 
-        String scanMethod = getScanMethod(symbolTable.get(variableToken.getValue()).getType());
-        generatedCode.append(variableToken.getValue()).append(" = scanner.").append(scanMethod).append("();\n");
-        tokenAux.match(TokenType.RPAREN);
+    private String formatInputRead(Token variableToken, Symbol symbol) {
+        String scanMethod = getScanMethod(symbol.getType());
+        return String.format("%s = scanner.%s();\n",
+                variableToken.getValue(),
+                scanMethod
+        );
     }
 
     /**
@@ -133,36 +146,45 @@ public class CodeGenerator {
     private void processWriteOutput(TokenAux tokenAux) {
         tokenAux.match(TokenType.ESCREVA);
         tokenAux.match(TokenType.LPAREN);
+
         String outputExpression = extractOutputExpression(tokenAux);
-        generatedCode.append("System.out.println(").append(outputExpression).append(");\n");
+        generatedCode.append(formatOutputStatement(outputExpression));
+
         tokenAux.match(TokenType.RPAREN);
     }
 
-    /**
-     * Extrai a expressão de saída para um comando de impressão. Concatena tokens válidos de saída e
-     * remove o último " + " para formatação correta
-     *
-     * @param tokenAux Auxiliar de navegação de tokens
-     * @return Expressão de saída como string
-     */
     private String extractOutputExpression(TokenAux tokenAux) {
-        StringBuilder outputBuilder = new StringBuilder();
-        while (!tokenAux.isAtEnd() && tokenAux.peek().getType() != TokenType.RPAREN) {
+        List<Token> outputTokens = collectOutputTokens(tokenAux);
+        return formatOutputExpression(outputTokens);
+    }
+
+    private List<Token> collectOutputTokens(TokenAux tokenAux) {
+        List<Token> tokens = new ArrayList<>();
+        while (!tokenAux.isAtEnd() && !tokenAux.check(TokenType.RPAREN)) {
             Token token = tokenAux.peek();
             if (isOutputToken(token)) {
-                outputBuilder.append(token.getValue()).append(" + ");
+                tokens.add(token);
             }
             tokenAux.advance();
         }
-        String outputExpression = outputBuilder.toString();
-        return outputExpression.isEmpty() ? "" : outputExpression.substring(0, outputExpression.length() - 3); // Remove o último " + "
+        return tokens;
+    }
+
+    private String formatOutputExpression(List<Token> tokens) {
+        return tokens.stream()
+                .map(Token::getValue)
+                .collect(Collectors.joining(" + "));
     }
 
     private boolean isOutputToken(Token token) {
-        return token.getType() == TokenType.STRING ||
-                token.getType() == TokenType.ID ||
-                token.getType () == TokenType.NUM_INT ||
-                token.getType() == TokenType.NUM_DEC;
+        return switch (token.getType()) {
+            case STRING, ID, NUM_INT, NUM_DEC -> true;
+            default -> false;
+        };
+    }
+
+    private String formatOutputStatement(String expression) {
+        return String.format("System.out.println(%s);\n", expression.isEmpty() ? "\"\"" : expression);
     }
 
     /**
@@ -176,47 +198,105 @@ public class CodeGenerator {
         Token variableToken = tokenAux.peekAfter();
         tokenAux.match(TokenType.ASSIGN);
 
+        Symbol targetSymbol = getTargetSymbol(tokenAux, variableToken);
+        String expression = buildExpression(tokenAux, targetSymbol);
+
+        generateAssignment(variableToken, expression);
+    }
+
+    private Symbol getTargetSymbol(TokenAux tokenAux, Token variableToken) {
+        Symbol symbol = symbolTable.get(variableToken.getValue());
+        if (symbol == null) {
+            throw new SyntaxException("Undefined variable: " + variableToken.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+        return symbol;
+    }
+
+    private String buildExpression(TokenAux tokenAux, Symbol targetSymbol) {
         StringBuilder expressionBuilder = new StringBuilder();
-        boolean hasUninitializedVariable = false;
 
-        while (!tokenAux.isAtEnd()) {
+        while (!isAssignmentComplete(tokenAux)) {
             Token currentToken = tokenAux.peek();
-            if (isBlockTerminatingToken(currentToken) || isNextAssignment(tokenAux)) {
-                break;
-            }
+            validateTokenType(tokenAux, currentToken, targetSymbol);
 
-            if (currentToken.getType() == TokenType.ID) {
-                Symbol symbol = symbolTable.get(currentToken.getValue());
-                if (symbol == null || !symbol.isInitialized()) {
-                    throw new SyntaxException("Variable '" + currentToken.getValue() + "' is not initialized before use.", tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-                }
-            }
-
-            String tokenValue = currentToken.getType() == TokenType.VERDADEIRO ||
-                    currentToken.getType() == TokenType.FALSO
-                    ? convertBooleanToken(currentToken.getValue())
-                    : currentToken.getValue();
-
-            expressionBuilder.append(tokenValue).append(" ");
+            expressionBuilder.append(formatTokenValue(currentToken)).append(" ");
             tokenAux.advance();
         }
 
-        String expression = expressionBuilder.toString().trim();
-        if (!expression.isEmpty() && !hasUninitializedVariable) {
-            generatedCode.append(variableToken.getValue()).append(" = ").append(expression).append(";\n");
+        return expressionBuilder.toString().trim();
+    }
+
+    private boolean isAssignmentComplete(TokenAux tokenAux) {
+        return tokenAux.isAtEnd() ||
+                isBlockTerminatingToken(tokenAux.peek()) ||
+                isNextAssignment(tokenAux);
+    }
+
+    private void validateTokenType(TokenAux tokenAux, Token token, Symbol targetSymbol) {
+        switch (token.getType()) {
+            case ID -> validateIdentifierToken(tokenAux, token, targetSymbol);
+            case STRING -> validateStringToken(tokenAux, targetSymbol);
+            case NUM_INT -> validateIntegerToken(tokenAux, targetSymbol);
+            case NUM_DEC -> validateDecimalToken(tokenAux, targetSymbol);
+        }
+    }
+
+    private void validateIdentifierToken(TokenAux tokenAux, Token token, Symbol targetSymbol) {
+        Symbol sourceSymbol = symbolTable.get(token.getValue());
+
+        if (sourceSymbol == null || !sourceSymbol.isInitialized()) {
+            throw new SyntaxException("Uninitialized variable: " + token.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+
+        if (isTypeIncompatible(targetSymbol.getType(), sourceSymbol.getType())) {
+            throw new SyntaxException("Type mismatch: Cannot assign " +
+                    sourceSymbol.getType() + " to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+    }
+
+    private void validateStringToken(TokenAux tokenAux, Symbol targetSymbol) {
+        if (targetSymbol.getType() != TokenType.TEXTO) {
+            throw new SyntaxException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+    }
+
+    private void validateIntegerToken(TokenAux tokenAux, Symbol targetSymbol) {
+        if (isTypeIncompatible(targetSymbol.getType(), TokenType.INTEIRO)) {
+            throw new SyntaxException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+    }
+
+    private void validateDecimalToken(TokenAux tokenAux, Symbol targetSymbol) {
+        if (isTypeIncompatible(targetSymbol.getType(), TokenType.DECIMAL)) {
+            throw new SyntaxException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        }
+    }
+
+    private void generateAssignment(Token variableToken, String expression) {
+        if (!expression.isEmpty()) {
+            generatedCode.append(variableToken.getValue())
+                    .append(" = ")
+                    .append(expression)
+                    .append(";\n");
             markVariableAsInitialized(variableToken);
         }
+    }
+
+    private String formatTokenValue(Token token) {
+        return (token.getType() == TokenType.VERDADEIRO || token.getType() == TokenType.FALSO)
+                ? convertBooleanToken(token.getValue())
+                : token.getValue();
+    }
+
+    private boolean isTypeIncompatible(TokenType targetType, TokenType sourceType) {
+        return targetType != sourceType &&
+                (targetType != TokenType.DECIMAL || sourceType != TokenType.INTEIRO);
     }
 
     private boolean isNextAssignment(TokenAux tokenAux) {
         return tokenAux.hasNext() && tokenAux.peekNext().getType() == TokenType.ASSIGN;
     }
 
-    /**
-     * Marca uma variável como inicializada na tabela de símbolos.
-     *
-     * @param variableToken Token da variável a ser marcada
-     */
     private void markVariableAsInitialized(Token variableToken) {
         Symbol targetSymbol = symbolTable.get(variableToken.getValue());
         if (targetSymbol != null) {
@@ -240,32 +320,35 @@ public class CodeGenerator {
         tokenAux.match(TokenType.FOR);
         tokenAux.match(TokenType.LPAREN);
 
-        String initialization = processForInitialization(tokenAux);
+        ForLoopParts parts = extractForLoopParts(tokenAux);
 
-        String condition = Arrays.stream(processForCondition(tokenAux).split("\\s+"))
-                .map(token -> {
-                    token = convertBooleanToken(token);
-                    return token;
-                })
-                .collect(Collectors.joining(" "));
-
-        String increment = processForIncrement(tokenAux);
-
-        generatedCode.append(String.format("for (%s; %s; %s) {\n", initialization, condition, increment));
+        generatedCode.append(formatForLoop(parts));
         processBlock(tokenAux);
         generatedCode.append("}\n");
     }
 
-    private String processForInitialization(TokenAux tokenAux) {
-        return processForSegment(tokenAux, TokenType.SEMICOLON);
+    private record ForLoopParts(String initialization, String condition, String increment) {}
+
+    private ForLoopParts extractForLoopParts(TokenAux tokenAux) {
+        return new ForLoopParts(
+                processForSegment(tokenAux, TokenType.SEMICOLON),
+                processForSegment(tokenAux, TokenType.SEMICOLON),
+                processForSegment(tokenAux, TokenType.RPAREN)
+        );
     }
 
-    private String processForCondition(TokenAux tokenAux) {
-        return processForSegment(tokenAux, TokenType.SEMICOLON);
+    private String formatForLoop(ForLoopParts parts) {
+        return String.format("for (%s; %s; %s) {\n",
+                parts.initialization(),
+                transformBooleanTokens(parts.condition()),
+                parts.increment()
+        );
     }
 
-    private String processForIncrement(TokenAux tokenAux) {
-        return processForSegment(tokenAux, TokenType.RPAREN);
+    private String transformBooleanTokens(String condition) {
+        return Arrays.stream(condition.split("\\s+"))
+                .map(this::convertBooleanToken)
+                .collect(Collectors.joining(" "));
     }
 
     /**
@@ -346,18 +429,6 @@ public class CodeGenerator {
     }
 
     /**
-     * Processa um bloco de código, permitindo a execução de múltiplas instruções.
-     *
-     * @param tokenAux Auxiliar de navegação de tokens
-     */
-    private void processBlock(TokenAux tokenAux) {
-        while (!tokenAux.isAtEnd() && tokenAux.peek().getType() != TokenType.RBRACE) {
-            processToken(tokenAux, tokenAux.peek());
-        }
-        tokenAux.match(TokenType.RBRACE);
-    }
-
-    /**
      * Gera expressões de condição para estruturas de controle como IF e WHILE.
      *
      * @param tokenAux Auxiliar de navegação de tokens
@@ -384,6 +455,18 @@ public class CodeGenerator {
                 token.getType() == TokenType.E ||
                 token.getType() == TokenType.NAO ||
                 token.getType() == TokenType.OU;
+    }
+
+    /**
+     * Processa um bloco de código, permitindo a execução de múltiplas instruções.
+     *
+     * @param tokenAux Auxiliar de navegação de tokens
+     */
+    private void processBlock(TokenAux tokenAux) {
+        while (!tokenAux.isAtEnd() && tokenAux.peek().getType() != TokenType.RBRACE) {
+            processToken(tokenAux, tokenAux.peek());
+        }
+        tokenAux.match(TokenType.RBRACE);
     }
 
     private String convertBooleanToken(String token) {
