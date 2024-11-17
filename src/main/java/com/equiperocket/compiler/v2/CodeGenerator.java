@@ -63,13 +63,22 @@ public class CodeGenerator {
      */
     private void generateVariableDeclarations() {
         symbolTable.forEach((varName, symbol) -> {
-            String javaType = convertToJavaType(symbol.getType());
-            generatedCode.append(javaType)
-                    .append(" ")
-                    .append(varName)
-                    .append(";\n");
+            checkVariableType(varName, symbol);
+            String declaration = generateVariableDeclaration(varName, symbol);
+            generatedCode.append(declaration);
             symbol.setInitialized(false);
         });
+    }
+
+    private void checkVariableType(String varName, Symbol symbol) {
+        if (symbol.getType() == null) {
+            throw new SyntaxException("Uninitialized variable: " + varName);
+        }
+    }
+
+    private String generateVariableDeclaration(String varName, Symbol symbol) {
+        String javaType = convertToJavaType(symbol.getType());
+        return String.format("%s %s;\n", javaType, varName);
     }
 
     /**
