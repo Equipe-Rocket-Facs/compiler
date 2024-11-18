@@ -1,15 +1,11 @@
 package com.equiperocket.compiler.v2;
 
-import com.equiperocket.compiler.v2.exception.SyntaxException;
 import com.equiperocket.compiler.v2.model.Symbol;
 import com.equiperocket.compiler.v2.model.Token;
 import com.equiperocket.compiler.v2.model.TokenType;
 import com.equiperocket.compiler.v2.util.TokenAux;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CodeGenerator {
@@ -65,15 +61,22 @@ public class CodeGenerator {
      * Gera declarações de variáveis com seus tipos correspondentes em Java e inicializa todas as variáveis como não inicializadas no símbolo.
      */
     private void generateVariableDeclarations() {
+        Map<TokenType, List<String>> groupedVariables = new HashMap<>();
+
         symbolTable.forEach((varName, symbol) -> {
-            String declaration = generateVariableDeclaration(varName, symbol);
+            groupedVariables.computeIfAbsent(symbol.getType(), k -> new ArrayList<>()).add(varName);
+        });
+
+        groupedVariables.forEach((type, varNames) -> {
+            String declaration = generateVariableDeclaration(varNames, type);
             generatedCode.append(declaration);
         });
     }
 
-    private String generateVariableDeclaration(String varName, Symbol symbol) {
-        String javaType = convertToJavaType(symbol.getType());
-        return String.format("%s %s;\n", javaType, varName);
+    private String generateVariableDeclaration(List<String> varNames, TokenType type) {
+        String javaType = convertToJavaType(type);
+        String joinedVarNames = String.join(", ", varNames);
+        return String.format("%s %s;\n", javaType, joinedVarNames);
     }
 
     /**

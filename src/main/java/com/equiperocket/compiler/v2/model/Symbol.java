@@ -3,7 +3,7 @@ package com.equiperocket.compiler.v2.model;
 public class Symbol {
 
     private TokenType type;
-    private int count;
+    private int count = 0;
     private boolean initialized = false;
 
     public Symbol() {
@@ -31,5 +31,9 @@ public class Symbol {
 
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
+    }
+
+    public void incrementCount() {
+        count++;
     }
 }

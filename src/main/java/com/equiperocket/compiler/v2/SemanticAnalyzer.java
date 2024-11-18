@@ -26,10 +26,19 @@ public class SemanticAnalyzer {
     }
 
     private void analyzeVariableDeclarations() {
-        symbolTable.forEach((varName, symbol) -> {
+        for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
+            String varName = entry.getKey();
+            Symbol symbol = entry.getValue();
+
+            if (symbol.getCount() >= 2) {
+                throw new SemanticException("Duplicate variable declaration: " + varName);
+            }
+
+            symbol.incrementCount();
+
             checkVariableType(varName, symbol);
             symbol.setInitialized(false);
-        });
+        }
     }
 
     private void checkVariableType(String varName, Symbol symbol) {
