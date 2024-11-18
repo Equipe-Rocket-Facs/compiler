@@ -50,6 +50,8 @@ public class Parser {
             tokenAux.matchReq(TokenType.ID);
             Symbol symbol = symbolTable.get(idName);
             symbol.setType(type);
+            int count = symbol.getCount();
+            symbol.setCount(++count);
             symbolTable.put(idName, symbol);
         } while (tokenAux.match(TokenType.COMMA));
     }
