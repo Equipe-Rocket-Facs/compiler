@@ -1,6 +1,7 @@
 package com.equiperocket.compiler.v2;
 
 import com.equiperocket.compiler.v2.exception.LexicalException;
+import com.equiperocket.compiler.v2.exception.SemanticException;
 import com.equiperocket.compiler.v2.exception.SyntaxException;
 import com.equiperocket.compiler.v2.model.Symbol;
 import com.equiperocket.compiler.v2.model.Token;
@@ -11,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class Main {
 
@@ -22,7 +22,7 @@ public class Main {
 //            String filePath = sc.nextLine();
 //
 //            String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case1.txt")));
+            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case8.txt")));
 
             Map<String, Symbol> symbolTable = new HashMap<>();
             Lexer lexer = new Lexer(sourceCode, symbolTable);
@@ -33,20 +33,25 @@ public class Main {
             Parser parser = new Parser(tokens, symbolTable);
             parser.parse();
 
-            CodeGenerator codeGenerator = new CodeGenerator(symbolTable);
-            String javaCode = codeGenerator.generate(tokens);
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(symbolTable, tokens);
+            semanticAnalyzer.analyze();
+
+            CodeGenerator codeGenerator = new CodeGenerator(symbolTable, tokens);
+            String javaCode = codeGenerator.generate();
 
             Files.write(Paths.get("Main.java"), javaCode.getBytes());
 
-            System.out.println("Código Java gerado com sucesso em Main.java");
+            System.out.println("Java code successfully generated in Main.java");
         } catch (IOException e) {
-            System.err.println("Erro de I/O: " + e.getMessage());
+            System.err.println("I/O error:\n" + e.getMessage());
         } catch (LexicalException e) {
-            System.err.println("Erro léxico: " + e.getMessage());
+            System.err.println("Lexical error:\n" + e.getMessage());
         } catch (SyntaxException e) {
-            System.err.println("Erro sintático: " + e.getMessage());
+            System.err.println("Syntactic error:\n" + e.getMessage());
+        } catch (SemanticException e) {
+            System.err.println("Semantic error:\n" + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Erro: " + e.getMessage());
+            System.err.println("Error:\n" + e.getMessage());
         }
     }
 }

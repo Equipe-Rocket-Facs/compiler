@@ -15,16 +15,19 @@ import java.util.stream.Collectors;
 public class CodeGenerator {
     private final Map<String, Symbol> symbolTable;
     private final StringBuilder generatedCode;
+    private final List<Token> tokens;
 
 
-    public CodeGenerator(Map<String, Symbol> symbolTable) {
+    public CodeGenerator(Map<String, Symbol> symbolTable, List<Token> tokens) {
         this.symbolTable = symbolTable;
+        this.tokens = tokens;
         this.generatedCode = new StringBuilder();
     }
 
-    public String generate(List<Token> tokens) {
+    public String generate() {
+        TokenAux tokenAux = new TokenAux(tokens);
         prepareCodeStructure(tokens);
-        processTokens(new TokenAux(tokens));
+        processTokens(tokenAux);
         closeCodeStructure();
         return generatedCode.toString();
     }
@@ -63,17 +66,9 @@ public class CodeGenerator {
      */
     private void generateVariableDeclarations() {
         symbolTable.forEach((varName, symbol) -> {
-            checkVariableType(varName, symbol);
             String declaration = generateVariableDeclaration(varName, symbol);
             generatedCode.append(declaration);
-            symbol.setInitialized(false);
         });
-    }
-
-    private void checkVariableType(String varName, Symbol symbol) {
-        if (symbol.getType() == null) {
-            throw new SyntaxException("Uninitialized variable: " + varName);
-        }
     }
 
     private String generateVariableDeclaration(String varName, Symbol symbol) {
@@ -124,18 +119,10 @@ public class CodeGenerator {
         Token variableToken = tokenAux.peek();
         tokenAux.match(TokenType.ID);
 
-        Symbol symbol = getSymbolAndMarkInitialized(variableToken);
+        Symbol symbol = symbolTable.get(variableToken.getValue());
 
         generatedCode.append(formatInputRead(variableToken, symbol));
         tokenAux.match(TokenType.RPAREN);
-    }
-
-    private Symbol getSymbolAndMarkInitialized(Token variableToken) {
-        Symbol symbol = symbolTable.get(variableToken.getValue());
-        if (symbol != null) {
-            symbol.setInitialized(true);
-        }
-        return symbol;
     }
 
     private String formatInputRead(Token variableToken, Symbol symbol) {
@@ -201,32 +188,21 @@ public class CodeGenerator {
      * e constrói expressão de atribuição.
      *
      * @param tokenAux Auxiliar de navegação de tokens
-     * @throws SyntaxException Se variável não inicializada for usada
      */
     private void processAssignment(TokenAux tokenAux) {
         Token variableToken = tokenAux.peekAfter();
         tokenAux.match(TokenType.ASSIGN);
 
-        Symbol targetSymbol = getTargetSymbol(tokenAux, variableToken);
-        String expression = buildExpression(tokenAux, targetSymbol);
+        String expression = buildExpression(tokenAux);
 
         generateAssignment(variableToken, expression);
     }
 
-    private Symbol getTargetSymbol(TokenAux tokenAux, Token variableToken) {
-        Symbol symbol = symbolTable.get(variableToken.getValue());
-        if (symbol == null) {
-            throw new SyntaxException("Undefined variable: " + variableToken.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
-        return symbol;
-    }
-
-    private String buildExpression(TokenAux tokenAux, Symbol targetSymbol) {
+    private String buildExpression(TokenAux tokenAux) {
         StringBuilder expressionBuilder = new StringBuilder();
 
         while (!isAssignmentComplete(tokenAux)) {
             Token currentToken = tokenAux.peek();
-            validateTokenType(tokenAux, currentToken, targetSymbol);
 
             expressionBuilder.append(formatTokenValue(currentToken)).append(" ");
             tokenAux.advance();
@@ -239,46 +215,6 @@ public class CodeGenerator {
         return tokenAux.isAtEnd() ||
                 isBlockTerminatingToken(tokenAux.peek()) ||
                 isNextAssignment(tokenAux);
-    }
-
-    private void validateTokenType(TokenAux tokenAux, Token token, Symbol targetSymbol) {
-        switch (token.getType()) {
-            case ID -> validateIdentifierToken(tokenAux, token, targetSymbol);
-            case STRING -> validateStringToken(tokenAux, targetSymbol);
-            case NUM_INT -> validateIntegerToken(tokenAux, targetSymbol);
-            case NUM_DEC -> validateDecimalToken(tokenAux, targetSymbol);
-        }
-    }
-
-    private void validateIdentifierToken(TokenAux tokenAux, Token token, Symbol targetSymbol) {
-        Symbol sourceSymbol = symbolTable.get(token.getValue());
-
-        if (sourceSymbol == null || !sourceSymbol.isInitialized()) {
-            throw new SyntaxException("Uninitialized variable: " + token.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
-
-        if (isTypeIncompatible(targetSymbol.getType(), sourceSymbol.getType())) {
-            throw new SyntaxException("Type mismatch: Cannot assign " +
-                    sourceSymbol.getType() + " to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
-    }
-
-    private void validateStringToken(TokenAux tokenAux, Symbol targetSymbol) {
-        if (targetSymbol.getType() != TokenType.TEXTO) {
-            throw new SyntaxException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
-    }
-
-    private void validateIntegerToken(TokenAux tokenAux, Symbol targetSymbol) {
-        if (isTypeIncompatible(targetSymbol.getType(), TokenType.INTEIRO)) {
-            throw new SyntaxException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
-    }
-
-    private void validateDecimalToken(TokenAux tokenAux, Symbol targetSymbol) {
-        if (isTypeIncompatible(targetSymbol.getType(), TokenType.DECIMAL)) {
-            throw new SyntaxException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
-        }
     }
 
     private void generateAssignment(Token variableToken, String expression) {
@@ -295,11 +231,6 @@ public class CodeGenerator {
         return (token.getType() == TokenType.VERDADEIRO || token.getType() == TokenType.FALSO)
                 ? convertBooleanToken(token.getValue())
                 : token.getValue();
-    }
-
-    private boolean isTypeIncompatible(TokenType targetType, TokenType sourceType) {
-        return targetType != sourceType &&
-                (targetType != TokenType.DECIMAL || sourceType != TokenType.INTEIRO);
     }
 
     private boolean isNextAssignment(TokenAux tokenAux) {
@@ -377,6 +308,7 @@ public class CodeGenerator {
         tokenAux.match(terminator);
         return segmentBuilder.toString().trim();
     }
+
 
     /**
      * Processa uma instrução IF, gerando o código correspondente em Java.
