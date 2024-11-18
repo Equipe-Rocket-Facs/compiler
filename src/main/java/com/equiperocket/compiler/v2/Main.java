@@ -22,24 +22,23 @@ public class Main {
 //            String filePath = sc.nextLine();
 //
 //            String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case5.txt")));
+            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case1.txt")));
 
             Map<String, Symbol> symbolTable = new HashMap<>();
             Lexer lexer = new Lexer(sourceCode, symbolTable);
 
             List<Token> tokens = lexer.tokenize();
-            tokens.forEach(System.out::println);
+//            tokens.forEach(System.out::println);
 
             Parser parser = new Parser(tokens, symbolTable);
             parser.parse();
 
-            // aqui seria o codigo gerado com os tokens
             CodeGenerator codeGenerator = new CodeGenerator(symbolTable);
-            String generatedCode = codeGenerator.generate(tokens);
+            String javaCode = codeGenerator.generate(tokens);
 
-            // Imprimir código gerado
-            System.out.println("\n--- Código Gerado ---");
-            System.out.println(generatedCode);
+            Files.write(Paths.get("Main.java"), javaCode.getBytes());
+
+            System.out.println("Código Java gerado com sucesso em Main.java");
         } catch (IOException e) {
             System.err.println("Erro de I/O: " + e.getMessage());
         } catch (LexicalException e) {

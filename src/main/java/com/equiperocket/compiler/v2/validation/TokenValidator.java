@@ -39,9 +39,8 @@ public class TokenValidator {
                 checkNextRelOp() ||
                 parserAux.check(TokenType.VERDADEIRO) ||
                 parserAux.check(TokenType.FALSO) ||
-                // Resultaria em erros, pois iria permitir uma expr entre ID e um tipo invalido como String
-//                parserAux.check(TokenType.ID);
-                checkBoolVar(); // Faz parte do semantico, mas faz-se necessario
+//                parserAux.check(TokenType.ID); // Resultaria em erros, pois iria permitir uma expr entre ID e um tipo invalido como String
+                checkBoolVar();
     }
 
     private boolean checkNextRelOp() {
@@ -53,14 +52,18 @@ public class TokenValidator {
                 parserAux.checkNext(TokenType.NEQ);
     }
 
-    // Permite IDs como condicao em estruturas if, while e for, alem de imprimir no escreva
-    private boolean checkBoolVar() {
-        if (parserAux.check(TokenType.ID)) {
+    private boolean checkBoolVar() { // Faz parte do semantico, mas faz-se necessario
+        if (!parserAux.check(TokenType.ID)) {
             String idName = parserAux.peek().getValue();
             Symbol symbol = symbolTable.get(idName);
-            return symbol != null && symbol.getType().equals(TokenType.BOOL);
+
+            if (checkSymbolValid(symbol)) return symbol.getType().equals(TokenType.BOOL);
         }
         return false;
+    }
+
+    private boolean checkSymbolValid(Symbol symbol) { // Impede null pointer exception
+        return symbol != null && symbol.getType() != null;
     }
 
     public boolean checkRelExpr() {
