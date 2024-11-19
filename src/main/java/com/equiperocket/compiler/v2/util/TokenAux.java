@@ -68,6 +68,10 @@ public class TokenAux {
         return tokens.get(current + 1);
     }
 
+    public Token peekTwo() {
+        return tokens.get(current + 2);
+    }
+
     public Token peekAfter() {
         return tokens.get(current - 1);
     }

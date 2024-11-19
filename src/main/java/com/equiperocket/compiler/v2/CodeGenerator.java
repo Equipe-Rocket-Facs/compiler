@@ -153,33 +153,13 @@ public class CodeGenerator {
     }
 
     private String extractOutputExpression(TokenAux tokenAux) {
-        List<Token> outputTokens = collectOutputTokens(tokenAux);
-        return formatOutputExpression(outputTokens);
-    }
-
-    private List<Token> collectOutputTokens(TokenAux tokenAux) {
-        List<Token> tokens = new ArrayList<>();
+        StringBuilder expressionBuilder = new StringBuilder();
         while (!tokenAux.isAtEnd() && !tokenAux.check(TokenType.RPAREN)) {
             Token token = tokenAux.peek();
-            if (isOutputToken(token)) {
-                tokens.add(token);
-            }
+            expressionBuilder.append(formatTokenValue(token)).append(" ");
             tokenAux.advance();
         }
-        return tokens;
-    }
-
-    private String formatOutputExpression(List<Token> tokens) {
-        return tokens.stream()
-                .map(Token::getValue)
-                .collect(Collectors.joining(" + "));
-    }
-
-    private boolean isOutputToken(Token token) {
-        return switch (token.getType()) {
-            case STRING, ID, NUM_INT, NUM_DEC -> true;
-            default -> false;
-        };
+        return expressionBuilder.toString().trim();
     }
 
     private String formatOutputStatement(String expression) {
