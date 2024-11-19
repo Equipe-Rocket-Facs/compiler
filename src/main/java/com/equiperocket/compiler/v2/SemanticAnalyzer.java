@@ -300,11 +300,12 @@ public class SemanticAnalyzer {
         tokenAux.match(TokenType.LPAREN);
 
         String initialization = extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
-        validateInitialization(initialization, tokenAux);
+        validateInitialization(initialization, tokenAux, false);
 
         extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
 
-        extractForLoopSegment(tokenAux, TokenType.RPAREN);
+        String increment = extractForLoopSegment(tokenAux, TokenType.RPAREN);
+        validateInitialization(increment, tokenAux, true);
 
         analyzeBlock(tokenAux);
     }
@@ -319,7 +320,7 @@ public class SemanticAnalyzer {
         return segmentBuilder.toString().trim();
     }
 
-    private void validateInitialization(String initialization, TokenAux tokenAux) {
+    private void validateInitialization(String initialization, TokenAux tokenAux, boolean isIncrement) {
         String[] parts = initialization.split("=");
         if (parts.length != 2) {
             Token token = tokenAux.peek();
@@ -343,6 +344,10 @@ public class SemanticAnalyzer {
         }
 
         symbol.setInitialized(true);
+
+        if (isIncrement && !symbol.isInitialized()) {
+            throw new SemanticException("Uninitialized variable in increment: " + variableName);
+        }
     }
 
     private void analyzeIfStatement(TokenAux tokenAux) {
