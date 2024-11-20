@@ -226,8 +226,8 @@ public class SemanticAnalyzer {
         switch (tokenType) {
             case ID -> validateIdentifierToken(tokenAux, token, targetSymbol);
             case STRING -> validateStringToken(tokenAux, targetSymbol);
-            case NUM_INT -> validateIntegerToken(tokenAux, targetSymbol);
-            case NUM_DEC -> validateDecimalToken(tokenAux, targetSymbol);
+            case INTEIRO -> validateIntegerToken(tokenAux, targetSymbol);
+            case DECIMAL -> validateDecimalToken(tokenAux, targetSymbol);
             case BOOL -> validateBooleanToken(tokenAux, targetSymbol);
         }
     }
@@ -416,6 +416,10 @@ public class SemanticAnalyzer {
             return TokenType.BOOL;
         }
 
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            return TokenType.TEXTO;
+        }
+
         if(value.contains("+") || value.contains("-") || value.contains("*") || value.contains("/") || value.contains("(") || value.contains(")")) {
             if(value.contains(".")){
                 return TokenType.DECIMAL;
@@ -431,7 +435,7 @@ public class SemanticAnalyzer {
             return TokenType.INTEIRO;
         }
 
-        return TokenType.STRING;
+        return TokenType.TEXTO;
     }
 
     private boolean isInteger(String value) {
