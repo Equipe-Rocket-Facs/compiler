@@ -1,108 +1,164 @@
 package com.equiperocket.compiler.v2.validation;
 
-import com.equiperocket.compiler.v2.model.Symbol;
 import com.equiperocket.compiler.v2.model.TokenType;
+import com.equiperocket.compiler.v2.util.ExprUtil;
 import com.equiperocket.compiler.v2.util.TokenAux;
-
-import java.util.Map;
 
 public class TokenValidator {
 
-    private TokenAux parserAux;
-    private Map<String, Symbol> symbolTable;
+    private TokenAux tokenAux;
 
-    public TokenValidator(TokenAux parserAux, Map<String, Symbol> symbolTable) {
-        this.parserAux = parserAux;
-        this.symbolTable = symbolTable;
+    public TokenValidator(TokenAux tokenAux) {
+        this.tokenAux = tokenAux;
     }
 
     public boolean checkType() {
-        return parserAux.check(TokenType.INTEIRO) ||
-                parserAux.check(TokenType.DECIMAL) ||
-                parserAux.check(TokenType.TEXTO) ||
-                parserAux.check(TokenType.BOOL);
+        return tokenAux.check(TokenType.INTEIRO) ||
+                tokenAux.check(TokenType.DECIMAL) ||
+                tokenAux.check(TokenType.TEXTO) ||
+                tokenAux.check(TokenType.BOOL);
     }
 
     public boolean checkCommand() {
-        return parserAux.check(TokenType.LEIA) ||
-                parserAux.check(TokenType.ESCREVA) ||
-                parserAux.check(TokenType.ID) ||
-                parserAux.check(TokenType.IF) ||
-                parserAux.check(TokenType.WHILE) ||
-                parserAux.check(TokenType.FOR);
+        return tokenAux.check(TokenType.LEIA) ||
+                tokenAux.check(TokenType.ESCREVA) ||
+                tokenAux.check(TokenType.ID) ||
+                tokenAux.check(TokenType.IF) ||
+                tokenAux.check(TokenType.WHILE) ||
+                tokenAux.check(TokenType.FOR);
+    }
+
+    public boolean isString() {
+        return tokenAux.check(TokenType.STRING);
+    }
+
+    public boolean isBoolean() {
+        return tokenAux.check(TokenType.VERDADEIRO) || tokenAux.check(TokenType.FALSO);
+    }
+
+    public boolean isBoolExpr() {
+        String expression = getExprValue("boolExpr");
+
+        if (checkBoolExpr()) return true; // Vindo primeiro economizamos trabalho desnecessario
+
+        return ExprUtil.isBoolExprValid(expression);
+    }
+
+    public boolean isRelExpr() {
+        if (!checkRelOp()) return false;
+        String expression = getExprValue("relExpr");
+        System.out.println("RelExpr value - " + expression);
+        boolean result = ExprUtil.isRelExprValid(expression);
+        System.out.println("RelExpr valid - " + result);
+        return result;
+    }
+
+    public boolean isExpr() {
+        String expression = getExprValue("expr");
+        System.out.println("Expr value - " + expression);
+        if (checkExpr()) return true;
+        boolean result = ExprUtil.isExprValid(expression);
+        System.out.println("Expr valid - " + result);
+        return result;
     }
 
     public boolean checkBoolExpr() {
-        if (checkParen()) return checkNextExpr("boolExpr");
-
-        return parserAux.check(TokenType.NAO) ||
-                checkNextRelOp() ||
-                parserAux.check(TokenType.VERDADEIRO) ||
-                parserAux.check(TokenType.FALSO) ||
-//                parserAux.check(TokenType.ID); // Resultaria em erros, pois iria permitir uma expr entre ID e um tipo invalido como String
-                checkBoolVar();
+        return tokenAux.check(TokenType.NAO) || isBoolean();
     }
 
-    private boolean checkNextRelOp() {
-        return parserAux.checkNext(TokenType.LESS) ||
-                parserAux.checkNext(TokenType.GREATER) ||
-                parserAux.checkNext(TokenType.LEQ) ||
-                parserAux.checkNext(TokenType.GEQ) ||
-                parserAux.checkNext(TokenType.EQ) ||
-                parserAux.checkNext(TokenType.NEQ);
-    }
-
-    private boolean checkBoolVar() { // Faz parte do semantico, mas faz-se necessario
-        if (!parserAux.check(TokenType.ID)) {
-            String idName = parserAux.peek().getValue();
-            Symbol symbol = symbolTable.get(idName);
-
-            if (checkSymbolValid(symbol)) return symbol.getType().equals(TokenType.BOOL);
-        }
-        return false;
-    }
-
-    private boolean checkSymbolValid(Symbol symbol) { // Impede null pointer exception
-        return symbol != null && symbol.getType() != null;
-    }
-
-    public boolean checkRelExpr() {
-        return checkRelOp() && checkNextExpr("expr");
-    }
-
-    private boolean checkRelOp() {
-        return parserAux.check(TokenType.LESS) ||
-                parserAux.check(TokenType.GREATER) ||
-                parserAux.check(TokenType.LEQ) ||
-                parserAux.check(TokenType.GEQ) ||
-                parserAux.check(TokenType.EQ) ||
-                parserAux.check(TokenType.NEQ);
+    public boolean checkRelOp() {
+        return tokenAux.check(TokenType.LESS) ||
+                tokenAux.check(TokenType.GREATER) ||
+                tokenAux.check(TokenType.LEQ) ||
+                tokenAux.check(TokenType.GEQ) ||
+                tokenAux.check(TokenType.EQ) ||
+                tokenAux.check(TokenType.NEQ);
     }
 
     public boolean checkExpr() {
-        if (checkParen()) return checkNextExpr("expr");
-
-        return parserAux.check(TokenType.NUM_INT) ||
-                parserAux.check(TokenType.NUM_DEC) ||
-                parserAux.check(TokenType.ID);
+        return tokenAux.check(TokenType.NUM_INT) ||
+                tokenAux.check(TokenType.NUM_DEC) ||
+                tokenAux.check(TokenType.ID);
     }
 
-    private boolean checkParen() {
-        return parserAux.check(TokenType.LPAREN);
-    }
+    private String getExprValue(String exprType) {
+        tokenAux.saveCheckpoint();
 
-    private boolean checkNextExpr(String whoIsCalling) {
-        parserAux.saveCheckpoint();
-        parserAux.advance();
+        if (checkRelExpr(exprType)) tokenAux.advance(); // Exclui o operador da expressao relacional
 
-        boolean isExpr;
-        if (whoIsCalling.equals("boolExpr")) {
-            isExpr = checkBoolExpr();
-        } else {
-            isExpr = checkExpr();
+        StringBuilder expression = new StringBuilder();
+        int openParens = 0;
+
+        while (tokenAux.hasNext() && !isEndOfExpression()) {
+            if (isExprComplete(exprType)) break;
+
+            openParens = trackParen(openParens);
+            if (openParens < 0) break;
+
+            if (!isParen()) { // Exclui parentesis da expressao para impedir entradas vazias
+                String value = tokenAux.peek().getValue();
+                expression.append(value);
+            }
+            tokenAux.advance();
         }
 
-        parserAux.restoreCheckpoint();
-        return isExpr;
+        tokenAux.restoreCheckpoint();
+        return expression.toString();
+    }
+
+    private boolean checkRelExpr(String exprType) {
+        return isRelExprType(exprType) &&
+                !((tokenAux.check(TokenType.EQ)) || (tokenAux.check(TokenType.NEQ)));
+    }
+
+    private boolean isExprComplete(String exprType) {
+        return (isRelExprType(exprType) || exprType.equals("expr")) && isEndOfRelExpr();
+    }
+
+    private boolean isRelExprType(String exprType) {
+        return exprType.equals("relExpr");
+    }
+
+    // Mantem sob controle abertura/fechamento de parentesis
+    private int trackParen(int openParens) {
+        if (tokenAux.check(TokenType.LPAREN)) {
+            openParens++;
+        } else if (tokenAux.check(TokenType.RPAREN)) {
+            openParens--;
+        }
+        return openParens;
+    }
+
+    private boolean isEndOfExpression() {
+        return tokenAux.check(TokenType.LEIA) ||
+                tokenAux.check(TokenType.ESCREVA) ||
+                isAttribution() ||
+                tokenAux.check(TokenType.IF) ||
+                tokenAux.check(TokenType.WHILE) ||
+                tokenAux.check(TokenType.FOR) ||
+                isAppendingText() ||
+                tokenAux.check(TokenType.LBRACE) ||
+                tokenAux.check(TokenType.RBRACE) ||
+                tokenAux.check(TokenType.SEMICOLON);
+    }
+
+    private boolean isAttribution() {
+        return tokenAux.check(TokenType.ID) && tokenAux.checkNext(TokenType.ASSIGN);
+    }
+
+    private boolean isAppendingText() {
+        return tokenAux.check(TokenType.PLUS) && tokenAux.checkNext(TokenType.STRING);
+    }
+
+    private boolean checkBoolOp() {
+        return tokenAux.check(TokenType.OU) || tokenAux.check(TokenType.E);
+    }
+
+    private boolean isEndOfRelExpr() {
+        return isEndOfExpression() || checkBoolOp() || checkBoolExpr() || checkRelOp();
+    }
+
+    private boolean isParen() {
+        return tokenAux.check(TokenType.LPAREN) || tokenAux.check(TokenType.RPAREN);
     }
 }

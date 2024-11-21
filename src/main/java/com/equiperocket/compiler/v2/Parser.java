@@ -19,7 +19,7 @@ public class Parser {
     public Parser(List<Token> tokens, Map<String, Symbol> symbolTable) {
         this.symbolTable = symbolTable;
         tokenAux = new TokenAux(tokens);
-        validator = new TokenValidator(tokenAux, symbolTable);
+        validator = new TokenValidator(tokenAux);
     }
 
     public void parse() {
@@ -29,7 +29,7 @@ public class Parser {
     private void program() {
         tokenAux.matchReq(TokenType.PROG);
         declarations();
-        commands();
+        commands(false);
         tokenAux.matchReq(TokenType.END_PROG);
     }
 
@@ -50,21 +50,24 @@ public class Parser {
             tokenAux.matchReq(TokenType.ID);
             Symbol symbol = symbolTable.get(idName);
             symbol.setType(type);
-            int count = symbol.getCount();
-            symbol.setCount(++count);
+            symbol.incrementCount();
             symbolTable.put(idName, symbol);
         } while (tokenAux.match(TokenType.COMMA));
     }
 
     private TokenType type() {
         TokenType type = tokenAux.peek().getType();
-        tokenAux.match(type);
+        consumeToken();
         return type;
     }
 
-    private void commands() {
+    private void commands(boolean isBlockCalling) {
         while (validator.checkCommand()) {
             command();
+        }
+
+        if (!isBlockCalling && !tokenAux.check(TokenType.END_PROG)) {
+            error("Invalid token");
         }
     }
 
@@ -94,12 +97,12 @@ public class Parser {
         tokenAux.matchReq(TokenType.LPAREN);
 
         do {
-            if (validator.checkBoolExpr()) {
+            if (tokenAux.check(TokenType.STRING)) {
+                consumeToken();
+            } else if (validator.isBoolExpr()) {
                 boolExpr();
-            } else if (validator.checkExpr()) {
+            } else if (validator.isExpr()) {
                 expr(true);
-            } else if (tokenAux.check(TokenType.STRING)) {
-                tokenAux.match(TokenType.STRING);
             }
         } while (tokenAux.match(TokenType.PLUS));
 
@@ -110,12 +113,12 @@ public class Parser {
         tokenAux.matchReq(TokenType.ID);
         tokenAux.matchReq(TokenType.ASSIGN);
 
-        if (validator.checkBoolExpr()) {
+        if (validator.isString()) { // Vindo primeiro economizamos trabalho desnecessario
+            consumeToken();
+        } else if (validator.isBoolExpr()) {
             boolExpr();
-        } else if (validator.checkExpr()) {
+        } else if (validator.isExpr()) {
             expr(false);
-        } else if (tokenAux.check(TokenType.STRING)) {
-            tokenAux.match(TokenType.STRING);
         } else {
             // Nao aceitar nada alem de expr, boolExpr ou String
             error("Invalid attribution value");
@@ -158,7 +161,7 @@ public class Parser {
 
     private void block() {
         tokenAux.matchReq(TokenType.LBRACE);
-        commands();
+        commands(true);
         tokenAux.matchReq(TokenType.RBRACE);
     }
 
@@ -184,36 +187,40 @@ public class Parser {
         } while (tokenAux.match(TokenType.EQ) || tokenAux.match(TokenType.NEQ));
     }
 
+    // A checagem para '(' deve vir depois de verificar se temos uma expressao matematica
+    // Pois podemos ter um calculo que utilize parentesis mas foi consumido no boolExpr
     private void boolExprBase() {
-        if (!validator.checkBoolExpr()) {
-            error("Invalid bool expression");
-        }
-
         if (tokenAux.match(TokenType.NAO)) {
             boolExpr();
+        } else if (validator.isExpr()) {
+            relExpr();
         } else if (tokenAux.match(TokenType.LPAREN)) {
             boolExpr();
             tokenAux.matchReq(TokenType.RPAREN);
-        } else if (!tokenAux.match(TokenType.VERDADEIRO) && !tokenAux.match(TokenType.FALSO)) {
-            // O boolExpr pode ser somente um ID ou entao uma relExpr
-            expr(false);
-
-            if (validator.checkRelExpr()) {
-                relOp();
-                expr(false);
-            }
+        } else if (validator.isBoolean()) {
+            consumeToken();
+        } else {
+            error("Invalid bool expression");
         }
     }
 
-    private void relOp() {
-        TokenType operator = tokenAux.peek().getType();
-        tokenAux.match(operator);
+    private void relExpr() {
+        // O boolExpr pode ser somente um ID ou entao uma relExpr
+        expr(false);
+
+        if (validator.isRelExpr()) {
+            consumeToken(); // Consome o operador
+
+            expr(false);
+        }
+//        error("Invalid bool expression context");
     }
 
-    private void expr(boolean writeCalling) {
+    private void expr(boolean isWriteCalling) {
         do {
             term();
-            if (writeCalling) return;
+            // Importante para o '+' dentro do escreva nao ser lido como operador matematico
+            if (isWriteCalling) return;
         } while (tokenAux.match(TokenType.PLUS) || tokenAux.match(TokenType.MINUS));
     }
 
@@ -224,18 +231,24 @@ public class Parser {
     }
 
     private void factor() {
-        if (!validator.checkExpr()) {
+        if (validator.checkExpr()) {
+            consumeToken();
+        } else if (tokenAux.match(TokenType.LPAREN)) {
+            boolExpr(); // O segundo if do boolExpr consome nossa expr (Numero ou ID)
+
+            // O boolExpr pode chamar o expr ao detectar operadores matematicos
+            // Isso pode resultar em calculos envolvendo booleans - Explode erro
+//            if (validator.checkRelOp()) return;
+
+            tokenAux.matchReq(TokenType.RPAREN);
+        } else {
             error("Invalid expression");
         }
+    }
 
-        // Tenta consumir o '(' primeiro, depois tenta com numeros e id
-        if (tokenAux.match(TokenType.LPAREN) ||
-                !tokenAux.match(TokenType.NUM_INT) &&
-                        !tokenAux.match(TokenType.NUM_DEC) &&
-                        !tokenAux.match(TokenType.ID)) {
-            expr(false);
-            tokenAux.matchReq(TokenType.RPAREN);
-        }
+    private void consumeToken() {
+        TokenType token = tokenAux.peek().getType();
+        tokenAux.match(token);
     }
 
     private void error(String msg) {
