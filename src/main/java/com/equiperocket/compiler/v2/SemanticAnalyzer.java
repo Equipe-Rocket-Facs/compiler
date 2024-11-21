@@ -195,14 +195,15 @@ public class SemanticAnalyzer {
         tokenAux.match(TokenType.ASSIGN);
 
         Symbol targetSymbol = getTargetSymbol(tokenAux, variableToken);
+        List<Token> expressionTokens = new ArrayList<>();
 
+        int line = tokenAux.peek().getLine();
+        int column = tokenAux.peek().getColumn();
         while (!isAssignmentComplete(tokenAux)) {
-            Token currentToken = tokenAux.peek();
-            validateTokenType(tokenAux, currentToken, targetSymbol);
-
+            expressionTokens.add(tokenAux.peek());
             tokenAux.advance();
         }
-
+        validateTokenType(expressionTokens,targetSymbol, line, column);
         markVariableAsInitialized(variableToken);
     }
 
@@ -221,51 +222,65 @@ public class SemanticAnalyzer {
                 isNextAssignment(tokenAux);
     }
 
-    private void validateTokenType(TokenAux tokenAux, Token token, Symbol targetSymbol) {
-        TokenType tokenType = determineValueType(token.getValue());
+    private void validateTokenType(List<Token> tokens, Symbol targetSymbol, int line, int column) {
+        TokenType tokenType = determineValueTypes(tokens);
         switch (tokenType) {
-            case ID -> validateIdentifierToken(tokenAux, token, targetSymbol);
-            case STRING -> validateStringToken(tokenAux, targetSymbol);
-            case INTEIRO -> validateIntegerToken(tokenAux, targetSymbol);
-            case DECIMAL -> validateDecimalToken(tokenAux, targetSymbol);
-            case BOOL -> validateBooleanToken(tokenAux, targetSymbol);
+            case TEXTO -> validateStringToken(targetSymbol, line, column);
+            case INTEIRO -> validateIntegerToken(targetSymbol, line, column);
+            case DECIMAL -> validateDecimalToken(targetSymbol, line, column);
+            case BOOL -> validateBooleanToken(targetSymbol, line, column);
         }
     }
 
-    private void validateIdentifierToken(TokenAux tokenAux, Token token, Symbol targetSymbol) {
-        Symbol sourceSymbol = symbolTable.get(token.getValue());
+    private TokenType determineValueTypes(List<Token> tokens) {
+        List<TokenType> types = new ArrayList<>();
 
-        if (!sourceSymbol.isInitialized()) {
-                throw new SemanticException("Uninitialized variable: " + token.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+        for (Token token : tokens) {
+            TokenType type = determineValueType(token.getValue());
+            types.add(type);
+        }
+
+        for (TokenType type : types) {
+            if (type == TokenType.BOOL) {
+                return TokenType.BOOL;
             }
-
-        if (isTypeIncompatible(targetSymbol.getType(), sourceSymbol.getType())) {
-            throw new SemanticException("Type mismatch: Cannot assign " +
-                    sourceSymbol.getType() + " to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
+
+        for (TokenType type : types) {
+            if (type == TokenType.TEXTO) {
+                return TokenType.TEXTO;
+            }
+        }
+
+        for (TokenType type : types) {
+            if (type == TokenType.DECIMAL) {
+                return TokenType.DECIMAL;
+            }
+        }
+        return TokenType.INTEIRO;
     }
 
-    private void validateStringToken(TokenAux tokenAux, Symbol targetSymbol) {
+        private void validateStringToken(Symbol targetSymbol, int line, int column) {
         if (targetSymbol.getType() != TokenType.TEXTO) {
-            throw new SemanticException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+            throw new SemanticException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), line, column);
         }
     }
 
-    private void validateBooleanToken(TokenAux tokenAux, Symbol targetSymbol) {
+    private void validateBooleanToken(Symbol targetSymbol, int line, int column) {
         if (targetSymbol.getType() != TokenType.BOOL) {
-            throw new SemanticException("Invalid assignment: Cannot assign boolean to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+            throw new SemanticException("Invalid assignment: Cannot assign boolean to " + targetSymbol.getType(), line, column);
         }
     }
 
-    private void validateIntegerToken(TokenAux tokenAux, Symbol targetSymbol) {
+    private void validateIntegerToken(Symbol targetSymbol, int line, int column) {
         if (isTypeIncompatible(targetSymbol.getType(), TokenType.INTEIRO)) {
-            throw new SemanticException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+            throw new SemanticException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), line, column);
         }
     }
 
-    private void validateDecimalToken(TokenAux tokenAux, Symbol targetSymbol) {
+    private void validateDecimalToken(Symbol targetSymbol, int line, int column) {
         if (isTypeIncompatible(targetSymbol.getType(), TokenType.DECIMAL)) {
-            throw new SemanticException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
+            throw new SemanticException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), line, column);
         }
     }
 
@@ -411,13 +426,13 @@ public class SemanticAnalyzer {
             return symbolTable.get(value).getType();
         }
 
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            return TokenType.TEXTO;
+        }
+
         if (value.equals("VERDADEIRO") || value.equals("FALSO") || value.contains(">") || value.contains("<")
                 || value.contains("<=") || value.contains("=>") || value.contains("=") || value.contains("!=")) {
             return TokenType.BOOL;
-        }
-
-        if (value.startsWith("\"") && value.endsWith("\"")) {
-            return TokenType.TEXTO;
         }
 
         if(value.contains("+") || value.contains("-") || value.contains("*") || value.contains("/") || value.contains("(") || value.contains(")")) {
