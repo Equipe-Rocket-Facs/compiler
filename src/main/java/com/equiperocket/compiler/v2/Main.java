@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Main {
 
@@ -22,7 +23,7 @@ public class Main {
 //            String filePath = sc.nextLine();
 //
 //            String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case8.txt")));
+            String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/resources/tests/Case1.txt")));
 
             Map<String, Symbol> symbolTable = new HashMap<>();
             Lexer lexer = new Lexer(sourceCode, symbolTable);

@@ -2,9 +2,14 @@
 
 programa
 
-bool p
+inteiro x, y
 
-p = 20 + (10 * 2) == FALSO
-// p = FALSO == 20 + (10 * 2)
+y = 10
+
+escreva("Tabuada do 9")
+
+for (x = 0; x <= y; x = x + 1) {
+    escreva("Resultado de 9 x " + x + " = " + x * 9)
+}
 
 fimprog

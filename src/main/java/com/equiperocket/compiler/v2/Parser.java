@@ -204,6 +204,7 @@ public class Parser {
         }
     }
 
+    // TODO: Esta permitindo relacoes entre booleans e numeros
     private void relExpr() {
         // O boolExpr pode ser somente um ID ou entao uma relExpr
         expr(false);
@@ -213,7 +214,7 @@ public class Parser {
 
             expr(false);
         }
-//        error("Invalid bool expression context");
+//        error("Invalid bool expression");
     }
 
     private void expr(boolean isWriteCalling) {

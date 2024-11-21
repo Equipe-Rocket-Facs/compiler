@@ -1,7 +1,6 @@
 package com.equiperocket.compiler.v2.validation;
 
 import com.equiperocket.compiler.v2.model.TokenType;
-import com.equiperocket.compiler.v2.util.ExprUtil;
 import com.equiperocket.compiler.v2.util.TokenAux;
 
 public class TokenValidator {
@@ -41,32 +40,34 @@ public class TokenValidator {
 
         if (checkBoolExpr()) return true; // Vindo primeiro economizamos trabalho desnecessario
 
-        return ExprUtil.isBoolExprValid(expression);
+        return ExprValidator.isBoolExprValid(expression);
     }
 
     public boolean isRelExpr() {
-        if (!checkRelOp()) return false;
+        if (!checkRelOperator()) return false;
+
         String expression = getExprValue("relExpr");
-        System.out.println("RelExpr value - " + expression);
-        boolean result = ExprUtil.isRelExprValid(expression);
-        System.out.println("RelExpr valid - " + result);
-        return result;
+
+        return ExprValidator.isRelExprValid(expression);
     }
 
     public boolean isExpr() {
         String expression = getExprValue("expr");
-        System.out.println("Expr value - " + expression);
+
         if (checkExpr()) return true;
-        boolean result = ExprUtil.isExprValid(expression);
-        System.out.println("Expr valid - " + result);
-        return result;
+
+        return ExprValidator.isExprValid(expression);
+    }
+
+    public boolean isNumber() {
+        return tokenAux.check(TokenType.NUM_INT) || tokenAux.check(TokenType.NUM_DEC);
     }
 
     public boolean checkBoolExpr() {
         return tokenAux.check(TokenType.NAO) || isBoolean();
     }
 
-    public boolean checkRelOp() {
+    public boolean checkRelOperator() {
         return tokenAux.check(TokenType.LESS) ||
                 tokenAux.check(TokenType.GREATER) ||
                 tokenAux.check(TokenType.LEQ) ||
@@ -75,10 +76,15 @@ public class TokenValidator {
                 tokenAux.check(TokenType.NEQ);
     }
 
+    public boolean checkMathOperator() {
+        return tokenAux.check(TokenType.PLUS) ||
+                tokenAux.check(TokenType.MINUS) ||
+                tokenAux.check(TokenType.MULT) ||
+                tokenAux.check(TokenType.DIV);
+    }
+
     public boolean checkExpr() {
-        return tokenAux.check(TokenType.NUM_INT) ||
-                tokenAux.check(TokenType.NUM_DEC) ||
-                tokenAux.check(TokenType.ID);
+        return isNumber() || tokenAux.check(TokenType.ID);
     }
 
     private String getExprValue(String exprType) {
@@ -155,7 +161,7 @@ public class TokenValidator {
     }
 
     private boolean isEndOfRelExpr() {
-        return isEndOfExpression() || checkBoolOp() || checkBoolExpr() || checkRelOp();
+        return isEndOfExpression() || checkBoolOp() || checkBoolExpr() || checkRelOperator();
     }
 
     private boolean isParen() {

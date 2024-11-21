@@ -1,6 +1,6 @@
-package com.equiperocket.compiler.v2.util;
+package com.equiperocket.compiler.v2.validation;
 
-public class ExprUtil {
+public class ExprValidator {
 
     public static boolean isBoolExprValid(String expression) {
         return !expression.isEmpty() &&
