@@ -45,6 +45,7 @@ public class Parser {
     }
 
     private void declarationList(TokenType type) {
+        // Altera a tabela de simbolos para guardar o tipo e quantidade de ocorrencia das variaveis
         do {
             String idName = tokenAux.peek().getValue();
             tokenAux.matchReq(TokenType.ID);
@@ -204,17 +205,22 @@ public class Parser {
         }
     }
 
-    // TODO: Esta permitindo relacoes entre booleans e numeros
     private void relExpr() {
         // O boolExpr pode ser somente um ID ou entao uma relExpr
+        // Se contiver numeros ou MathOp deve exigir que seja relExpr
+        boolean isMathRelExpr = validator.checkRelExpr();
+
         expr(false);
+
+        if (!validator.checkRelExprOperator() && !isMathRelExpr) return;
 
         if (validator.isRelExpr()) {
             consumeToken(); // Consome o operador
 
             expr(false);
+        } else {
+            error("Invalid bool expression");
         }
-//        error("Invalid bool expression");
     }
 
     private void expr(boolean isWriteCalling) {
@@ -235,12 +241,7 @@ public class Parser {
         if (validator.checkExpr()) {
             consumeToken();
         } else if (tokenAux.match(TokenType.LPAREN)) {
-            boolExpr(); // O segundo if do boolExpr consome nossa expr (Numero ou ID)
-
-            // O boolExpr pode chamar o expr ao detectar operadores matematicos
-            // Isso pode resultar em calculos envolvendo booleans - Explode erro
-//            if (validator.checkRelOp()) return;
-
+            expr(false);
             tokenAux.matchReq(TokenType.RPAREN);
         } else {
             error("Invalid expression");

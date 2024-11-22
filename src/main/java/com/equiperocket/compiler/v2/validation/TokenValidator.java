@@ -63,28 +63,37 @@ public class TokenValidator {
         return tokenAux.check(TokenType.NUM_INT) || tokenAux.check(TokenType.NUM_DEC);
     }
 
+    public boolean isID() {
+        return tokenAux.check(TokenType.ID);
+    }
+
     public boolean checkBoolExpr() {
         return tokenAux.check(TokenType.NAO) || isBoolean();
     }
 
+    public boolean checkRelExpr() {
+        String expression = getExprValue("expr"); // Pega o valor da esquerda da expressao relacional
+
+        return ExprValidator.isNumeric(expression);
+    }
+
     public boolean checkRelOperator() {
+        return checkRelExprOperator() || checkRelBoolOperator();
+    }
+
+    public boolean checkRelExprOperator() {
         return tokenAux.check(TokenType.LESS) ||
                 tokenAux.check(TokenType.GREATER) ||
                 tokenAux.check(TokenType.LEQ) ||
-                tokenAux.check(TokenType.GEQ) ||
-                tokenAux.check(TokenType.EQ) ||
-                tokenAux.check(TokenType.NEQ);
+                tokenAux.check(TokenType.GEQ);
     }
 
-    public boolean checkMathOperator() {
-        return tokenAux.check(TokenType.PLUS) ||
-                tokenAux.check(TokenType.MINUS) ||
-                tokenAux.check(TokenType.MULT) ||
-                tokenAux.check(TokenType.DIV);
+    public boolean checkRelBoolOperator() {
+        return tokenAux.check(TokenType.EQ) || tokenAux.check(TokenType.NEQ);
     }
 
     public boolean checkExpr() {
-        return isNumber() || tokenAux.check(TokenType.ID);
+        return isNumber() || isID();
     }
 
     private String getExprValue(String exprType) {
@@ -113,16 +122,19 @@ public class TokenValidator {
     }
 
     private boolean checkRelExpr(String exprType) {
-        return isRelExprType(exprType) &&
-                !((tokenAux.check(TokenType.EQ)) || (tokenAux.check(TokenType.NEQ)));
+        return isRelExprType(exprType) && !checkRelBoolOperator();
     }
 
     private boolean isExprComplete(String exprType) {
-        return (isRelExprType(exprType) || exprType.equals("expr")) && isEndOfRelExpr();
+        return (isRelExprType(exprType) || isExprType(exprType)) && isEndOfRelExpr();
     }
 
     private boolean isRelExprType(String exprType) {
         return exprType.equals("relExpr");
+    }
+
+    private boolean isExprType(String exprType) {
+        return exprType.equals("expr");
     }
 
     // Mantem sob controle abertura/fechamento de parentesis
