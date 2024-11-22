@@ -27,10 +27,10 @@ public class Parser {
     }
 
     private void program() {
-        tokenAux.matchReq(TokenType.PROG);
+        tokenAux.require(TokenType.PROG);
         declarations();
         commands(false);
-        tokenAux.matchReq(TokenType.END_PROG);
+        tokenAux.require(TokenType.END_PROG);
     }
 
     private void declarations() {
@@ -48,7 +48,7 @@ public class Parser {
         // Altera a tabela de simbolos para guardar o tipo e quantidade de ocorrencia das variaveis
         do {
             String idName = tokenAux.peek().getValue();
-            tokenAux.matchReq(TokenType.ID);
+            tokenAux.require(TokenType.ID);
             Symbol symbol = symbolTable.get(idName);
             symbol.setType(type);
             symbol.incrementCount();
@@ -67,7 +67,7 @@ public class Parser {
             command();
         }
 
-        if (!isBlockCalling && !tokenAux.check(TokenType.END_PROG)) {
+        if (!isBlockCalling && !tokenAux.isType(TokenType.END_PROG)) {
             error("Invalid token");
         }
     }
@@ -77,7 +77,7 @@ public class Parser {
             readInput();
         } else if (tokenAux.match(TokenType.ESCREVA)) {
             writeOutput();
-        } else if (tokenAux.check(TokenType.ID)) {
+        } else if (tokenAux.isType(TokenType.ID)) {
             attribution();
         } else if (tokenAux.match(TokenType.IF)) {
             ifStmt();
@@ -89,16 +89,16 @@ public class Parser {
     }
 
     private void readInput() {
-        tokenAux.matchReq(TokenType.LPAREN);
-        tokenAux.matchReq(TokenType.ID);
-        tokenAux.matchReq(TokenType.RPAREN);
+        tokenAux.require(TokenType.LPAREN);
+        tokenAux.require(TokenType.ID);
+        tokenAux.require(TokenType.RPAREN);
     }
 
     private void writeOutput() {
-        tokenAux.matchReq(TokenType.LPAREN);
+        tokenAux.require(TokenType.LPAREN);
 
         do {
-            if (tokenAux.check(TokenType.STRING)) {
+            if (tokenAux.isType(TokenType.STRING)) {
                 consumeToken();
             } else if (validator.isBoolExpr()) {
                 boolExpr();
@@ -107,12 +107,12 @@ public class Parser {
             }
         } while (tokenAux.match(TokenType.PLUS));
 
-        tokenAux.matchReq(TokenType.RPAREN);
+        tokenAux.require(TokenType.RPAREN);
     }
 
     private void attribution() {
-        tokenAux.matchReq(TokenType.ID);
-        tokenAux.matchReq(TokenType.ASSIGN);
+        tokenAux.require(TokenType.ID);
+        tokenAux.require(TokenType.ASSIGN);
 
         if (validator.isString()) { // Vindo primeiro economizamos trabalho desnecessario
             consumeToken();
@@ -128,9 +128,9 @@ public class Parser {
 
     private void ifStmt() {
         do {
-            tokenAux.matchReq(TokenType.LPAREN);
+            tokenAux.require(TokenType.LPAREN);
             condition();
-            tokenAux.matchReq(TokenType.RPAREN);
+            tokenAux.require(TokenType.RPAREN);
             block();
         } while (tokenAux.match(TokenType.ELIF));
 
@@ -140,30 +140,30 @@ public class Parser {
     }
 
     private void whileStmt() {
-        tokenAux.matchReq(TokenType.LPAREN);
+        tokenAux.require(TokenType.LPAREN);
         condition();
-        tokenAux.matchReq(TokenType.RPAREN);
+        tokenAux.require(TokenType.RPAREN);
         block();
     }
 
     private void forStmt() {
-        tokenAux.matchReq(TokenType.LPAREN);
+        tokenAux.require(TokenType.LPAREN);
         attribution();
-        tokenAux.matchReq(TokenType.SEMICOLON);
+        tokenAux.require(TokenType.SEMICOLON);
         condition();
 
         if (tokenAux.match(TokenType.SEMICOLON)) {
             attribution();
         }
 
-        tokenAux.matchReq(TokenType.RPAREN);
+        tokenAux.require(TokenType.RPAREN);
         block();
     }
 
     private void block() {
-        tokenAux.matchReq(TokenType.LBRACE);
+        tokenAux.require(TokenType.LBRACE);
         commands(true);
-        tokenAux.matchReq(TokenType.RBRACE);
+        tokenAux.require(TokenType.RBRACE);
     }
 
     private void condition() {
@@ -197,7 +197,7 @@ public class Parser {
             relExpr();
         } else if (tokenAux.match(TokenType.LPAREN)) {
             boolExpr();
-            tokenAux.matchReq(TokenType.RPAREN);
+            tokenAux.require(TokenType.RPAREN);
         } else if (validator.isBoolean()) {
             consumeToken();
         } else {
@@ -242,7 +242,7 @@ public class Parser {
             consumeToken();
         } else if (tokenAux.match(TokenType.LPAREN)) {
             expr(false);
-            tokenAux.matchReq(TokenType.RPAREN);
+            tokenAux.require(TokenType.RPAREN);
         } else {
             error("Invalid expression");
         }

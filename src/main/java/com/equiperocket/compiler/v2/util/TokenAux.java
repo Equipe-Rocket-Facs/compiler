@@ -16,15 +16,17 @@ public class TokenAux {
         this.tokens = tokens;
     }
 
+    // Combina e avança se o tipo corresponder
     public boolean match(TokenType type) {
-        if (check(type)) {
+        if (isType(type)) {
             advance();
             return true;
         }
         return false;
     }
 
-    public void matchReq(TokenType type) {
+    // Combina e avança obrigatoriamente
+    public void require(TokenType type) {
         if (!match(type)) {
             Token token = peek();
             throw new SyntaxException(
@@ -34,14 +36,14 @@ public class TokenAux {
         }
     }
 
-    public boolean check(TokenType type) {
-        if (isAtEnd()) return false;
-        return peek().getType().equals(type);
+    // Verifica se o token atual corresponde ao tipo
+    public boolean isType(TokenType type) {
+        return !isAtEnd() && peek().getType().equals(type);
     }
 
-    public boolean checkNext(TokenType type) {
-        if (isAtEnd()) return false;
-        return peekNext().getType().equals(type);
+    // Verifica se o próximo token corresponde ao tipo
+    public boolean isNextType(TokenType type) {
+        return hasNext() && peekNext().getType().equals(type);
     }
 
     public void saveCheckpoint() {
@@ -53,7 +55,7 @@ public class TokenAux {
     }
 
     public void advance() {
-        current++;
+        if (!isAtEnd()) current++;
     }
 
     public boolean isAtEnd() {
@@ -68,11 +70,11 @@ public class TokenAux {
         return tokens.get(current + 1);
     }
 
-    public Token peekTwo() {
+    public Token peekTwoAhead() {
         return tokens.get(current + 2);
     }
 
-    public Token peekAfter() {
+    public Token peekPrevious() {
         return tokens.get(current - 1);
     }
 

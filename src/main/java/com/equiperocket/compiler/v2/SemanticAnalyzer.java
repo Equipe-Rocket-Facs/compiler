@@ -96,7 +96,7 @@ public class SemanticAnalyzer {
 
     private List<Token> collectOutputTokens(TokenAux tokenAux) {
         List<Token> tokens = new ArrayList<>();
-        while (!tokenAux.isAtEnd() && !tokenAux.check(TokenType.RPAREN)) {
+        while (!tokenAux.isAtEnd() && !tokenAux.isType(TokenType.RPAREN)) {
             Token token = tokenAux.peek();
             if (isOutputToken(token)) {
                 tokens.add(token);
@@ -191,7 +191,7 @@ public class SemanticAnalyzer {
     }
 
     private void analyzeAssignment(TokenAux tokenAux) {
-        Token variableToken = tokenAux.peekAfter();
+        Token variableToken = tokenAux.peekPrevious();
         tokenAux.match(TokenType.ASSIGN);
 
         Symbol targetSymbol = getTargetSymbol(tokenAux, variableToken);
@@ -291,7 +291,7 @@ public class SemanticAnalyzer {
 
     private boolean isNextAssignment(TokenAux tokenAux) {
         if(tokenAux.peekNext().getType() == TokenType.ID) {
-            return tokenAux.peekTwo().getType() == TokenType.ASSIGN;
+            return tokenAux.peekTwoAhead().getType() == TokenType.ASSIGN;
         }
         return false;
     }

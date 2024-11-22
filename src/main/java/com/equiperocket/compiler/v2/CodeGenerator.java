@@ -154,7 +154,7 @@ public class CodeGenerator {
 
     private String extractOutputExpression(TokenAux tokenAux) {
         StringBuilder expressionBuilder = new StringBuilder();
-        while (!tokenAux.isAtEnd() && !tokenAux.check(TokenType.RPAREN)) {
+        while (!tokenAux.isAtEnd() && !tokenAux.isType(TokenType.RPAREN)) {
             Token token = tokenAux.peek();
             expressionBuilder.append(formatTokenValue(token)).append(" ");
             tokenAux.advance();
@@ -173,7 +173,7 @@ public class CodeGenerator {
      * @param tokenAux Auxiliar de navegação de tokens
      */
     private void processAssignment(TokenAux tokenAux) {
-        Token variableToken = tokenAux.peekAfter();
+        Token variableToken = tokenAux.peekPrevious();
         tokenAux.match(TokenType.ASSIGN);
 
         String expression = buildExpression(tokenAux);

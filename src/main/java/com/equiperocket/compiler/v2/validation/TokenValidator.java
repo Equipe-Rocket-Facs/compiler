@@ -12,27 +12,27 @@ public class TokenValidator {
     }
 
     public boolean checkType() {
-        return tokenAux.check(TokenType.INTEIRO) ||
-                tokenAux.check(TokenType.DECIMAL) ||
-                tokenAux.check(TokenType.TEXTO) ||
-                tokenAux.check(TokenType.BOOL);
+        return tokenAux.isType(TokenType.INTEIRO) ||
+                tokenAux.isType(TokenType.DECIMAL) ||
+                tokenAux.isType(TokenType.TEXTO) ||
+                tokenAux.isType(TokenType.BOOL);
     }
 
     public boolean checkCommand() {
-        return tokenAux.check(TokenType.LEIA) ||
-                tokenAux.check(TokenType.ESCREVA) ||
-                tokenAux.check(TokenType.ID) ||
-                tokenAux.check(TokenType.IF) ||
-                tokenAux.check(TokenType.WHILE) ||
-                tokenAux.check(TokenType.FOR);
+        return tokenAux.isType(TokenType.LEIA) ||
+                tokenAux.isType(TokenType.ESCREVA) ||
+                tokenAux.isType(TokenType.ID) ||
+                tokenAux.isType(TokenType.IF) ||
+                tokenAux.isType(TokenType.WHILE) ||
+                tokenAux.isType(TokenType.FOR);
     }
 
     public boolean isString() {
-        return tokenAux.check(TokenType.STRING);
+        return tokenAux.isType(TokenType.STRING);
     }
 
     public boolean isBoolean() {
-        return tokenAux.check(TokenType.VERDADEIRO) || tokenAux.check(TokenType.FALSO);
+        return tokenAux.isType(TokenType.VERDADEIRO) || tokenAux.isType(TokenType.FALSO);
     }
 
     public boolean isBoolExpr() {
@@ -60,15 +60,15 @@ public class TokenValidator {
     }
 
     public boolean isNumber() {
-        return tokenAux.check(TokenType.NUM_INT) || tokenAux.check(TokenType.NUM_DEC);
+        return tokenAux.isType(TokenType.NUM_INT) || tokenAux.isType(TokenType.NUM_DEC);
     }
 
     public boolean isID() {
-        return tokenAux.check(TokenType.ID);
+        return tokenAux.isType(TokenType.ID);
     }
 
     public boolean checkBoolExpr() {
-        return tokenAux.check(TokenType.NAO) || isBoolean();
+        return tokenAux.isType(TokenType.NAO) || isBoolean();
     }
 
     public boolean checkRelExpr() {
@@ -82,14 +82,14 @@ public class TokenValidator {
     }
 
     public boolean checkRelExprOperator() {
-        return tokenAux.check(TokenType.LESS) ||
-                tokenAux.check(TokenType.GREATER) ||
-                tokenAux.check(TokenType.LEQ) ||
-                tokenAux.check(TokenType.GEQ);
+        return tokenAux.isType(TokenType.LESS) ||
+                tokenAux.isType(TokenType.GREATER) ||
+                tokenAux.isType(TokenType.LEQ) ||
+                tokenAux.isType(TokenType.GEQ);
     }
 
     public boolean checkRelBoolOperator() {
-        return tokenAux.check(TokenType.EQ) || tokenAux.check(TokenType.NEQ);
+        return tokenAux.isType(TokenType.EQ) || tokenAux.isType(TokenType.NEQ);
     }
 
     public boolean checkExpr() {
@@ -139,37 +139,37 @@ public class TokenValidator {
 
     // Mantem sob controle abertura/fechamento de parentesis
     private int trackParen(int openParens) {
-        if (tokenAux.check(TokenType.LPAREN)) {
+        if (tokenAux.isType(TokenType.LPAREN)) {
             openParens++;
-        } else if (tokenAux.check(TokenType.RPAREN)) {
+        } else if (tokenAux.isType(TokenType.RPAREN)) {
             openParens--;
         }
         return openParens;
     }
 
     private boolean isEndOfExpression() {
-        return tokenAux.check(TokenType.LEIA) ||
-                tokenAux.check(TokenType.ESCREVA) ||
+        return tokenAux.isType(TokenType.LEIA) ||
+                tokenAux.isType(TokenType.ESCREVA) ||
                 isAttribution() ||
-                tokenAux.check(TokenType.IF) ||
-                tokenAux.check(TokenType.WHILE) ||
-                tokenAux.check(TokenType.FOR) ||
+                tokenAux.isType(TokenType.IF) ||
+                tokenAux.isType(TokenType.WHILE) ||
+                tokenAux.isType(TokenType.FOR) ||
                 isAppendingText() ||
-                tokenAux.check(TokenType.LBRACE) ||
-                tokenAux.check(TokenType.RBRACE) ||
-                tokenAux.check(TokenType.SEMICOLON);
+                tokenAux.isType(TokenType.LBRACE) ||
+                tokenAux.isType(TokenType.RBRACE) ||
+                tokenAux.isType(TokenType.SEMICOLON);
     }
 
     private boolean isAttribution() {
-        return tokenAux.check(TokenType.ID) && tokenAux.checkNext(TokenType.ASSIGN);
+        return tokenAux.isType(TokenType.ID) && tokenAux.isNextType(TokenType.ASSIGN);
     }
 
     private boolean isAppendingText() {
-        return tokenAux.check(TokenType.PLUS) && tokenAux.checkNext(TokenType.STRING);
+        return tokenAux.isType(TokenType.PLUS) && tokenAux.isNextType(TokenType.STRING);
     }
 
     private boolean checkBoolOp() {
-        return tokenAux.check(TokenType.OU) || tokenAux.check(TokenType.E);
+        return tokenAux.isType(TokenType.OU) || tokenAux.isType(TokenType.E);
     }
 
     private boolean isEndOfRelExpr() {
@@ -177,6 +177,6 @@ public class TokenValidator {
     }
 
     private boolean isParen() {
-        return tokenAux.check(TokenType.LPAREN) || tokenAux.check(TokenType.RPAREN);
+        return tokenAux.isType(TokenType.LPAREN) || tokenAux.isType(TokenType.RPAREN);
     }
 }
