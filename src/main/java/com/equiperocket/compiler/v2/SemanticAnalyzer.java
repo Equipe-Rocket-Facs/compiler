@@ -134,7 +134,7 @@ public class SemanticAnalyzer {
                 TokenType leftType = getTokenType(leftToken);
                 TokenType rightType = getTokenType(rightToken);
 
-                if (!areTypesCompatible(leftType, rightType)) {
+                if (areTypesIncompatible(leftType, rightType)) {
                     throw new SemanticException(
                             String.format("Type mismatch: Cannot compare %s with %s",
                                     leftType, rightType)
@@ -170,17 +170,17 @@ public class SemanticAnalyzer {
         };
     }
 
-    private boolean areTypesCompatible(TokenType leftType, TokenType rightType) {
+    private boolean areTypesIncompatible(TokenType leftType, TokenType rightType) {
         if (leftType == null || rightType == null) {
-            return false;
+            return true;
         }
 
         if ((leftType == TokenType.INTEIRO || leftType == TokenType.DECIMAL) &&
                 (rightType == TokenType.INTEIRO || rightType == TokenType.DECIMAL)) {
-            return true;
+            return false;
         }
 
-        return leftType == TokenType.BOOL && rightType == TokenType.BOOL;
+        return leftType != TokenType.BOOL || rightType != TokenType.BOOL;
     }
 
     private boolean isOutputToken(Token token) {
@@ -315,12 +315,13 @@ public class SemanticAnalyzer {
         tokenAux.match(TokenType.LPAREN);
 
         String initialization = extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
-        validateInitialization(initialization, tokenAux, false);
+        validateVariable(initialization, tokenAux, true);
 
-        extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
+        String condition = extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
+        validateVariable(condition, tokenAux, false);
 
         String increment = extractForLoopSegment(tokenAux, TokenType.RPAREN);
-        validateInitialization(increment, tokenAux, true);
+        validateVariable(increment, tokenAux, true);
 
         analyzeBlock(tokenAux);
     }
@@ -335,15 +336,18 @@ public class SemanticAnalyzer {
         return segmentBuilder.toString().trim();
     }
 
-    private void validateInitialization(String initialization, TokenAux tokenAux, boolean isIncrement) {
-        String[] parts = initialization.split("=");
-        if (parts.length != 2) {
+    private void validateVariable(String segment, TokenAux tokenAux, boolean isInitialization) {
+        String[] parts = segment.split(isInitialization ? "=" : " ");
+        if (isInitialization && parts.length != 2) {
             Token token = tokenAux.peek();
-            throw new SemanticException("Invalid initialization format: " + initialization + " at line:", token.getLine(), token.getColumn());
+            throw new SemanticException("Invalid initialization format: " + segment + " at line: " + token.getLine() + ", column: " + token.getColumn());
+        } else if (!isInitialization && parts.length != 3) {
+            Token token = tokenAux.peek();
+            throw new SemanticException("Invalid condition format: " + segment + " at line: " + token.getLine() + ", column: " + token.getColumn());
         }
 
         String variableName = parts[0].trim();
-        String value = parts[1].trim();
+        String value = isInitialization ? parts[1].trim() : parts[2].trim();
 
         Symbol symbol = symbolTable.get(variableName);
         if (symbol == null) {
@@ -353,15 +357,17 @@ public class SemanticAnalyzer {
         TokenType expectedType = symbol.getType();
         TokenType actualType = determineValueType(value);
 
-        if (isTypeIncompatible(expectedType, actualType)) {
-            Token token = tokenAux.peek();
-            throw new SemanticException("Type mismatch: Cannot assign " + actualType + " to " + expectedType + " at line:", token.getLine(), token.getColumn());
-        }
-
-        symbol.setInitialized(true);
-
-        if (isIncrement && !symbol.isInitialized()) {
-            throw new SemanticException("Uninitialized variable in increment: " + variableName);
+        if (isInitialization) {
+            if (isTypeIncompatible(expectedType, actualType)) {
+                Token token = tokenAux.peek();
+                throw new SemanticException("Type mismatch: Cannot assign " + actualType + " to " + expectedType + " at line:", token.getLine(), token.getColumn());
+            }
+            symbol.setInitialized(true);
+        } else {
+            if (areTypesIncompatible(expectedType, actualType)) {
+                Token token = tokenAux.peek();
+                throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s at line: %d, column: %d", expectedType, actualType, token.getLine(), token.getColumn()));
+            }
         }
     }
 
@@ -394,11 +400,10 @@ public class SemanticAnalyzer {
         analyzeBlock(tokenAux);
     }
     private void generateConditionExpression(TokenAux tokenAux) {
-
         while (!tokenAux.isAtEnd() && tokenAux.peek().getType() != TokenType.RPAREN) {
             Token token = tokenAux.peek();
 
-            if (Objects.requireNonNull(token.getType()) == TokenType.ID) {// Handle variable tokens
+            if (token.getType() == TokenType.ID) { // Handle variable tokens
                 Symbol symbol = symbolTable.get(token.getValue());
                 if (symbol == null) {
                     throw new SemanticException("Undefined variable: " + token.getValue());
@@ -406,6 +411,13 @@ public class SemanticAnalyzer {
 
                 if (!symbol.isInitialized()) {
                     throw new SemanticException("Uninitialized variable used in condition: " + token.getValue(), token.getLine(), token.getColumn());
+                }
+            } else if (isComparisonOperator(token)) {
+                TokenType leftType = getTokenType(tokenAux.peekPrevious());
+                TokenType rightType = getTokenType(tokenAux.peekNext());
+
+                if (areTypesIncompatible(leftType, rightType)) {
+                    throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s at line: %d, column: %d", leftType, rightType, token.getLine(), token.getColumn()));
                 }
             }
             tokenAux.advance();
