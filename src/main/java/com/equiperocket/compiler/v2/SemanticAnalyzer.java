@@ -91,6 +91,19 @@ public class SemanticAnalyzer {
 
     private void extractOutputExpression(TokenAux tokenAux) {
         List<Token> outputTokens = collectOutputTokens(tokenAux);
+
+        for (Token token : outputTokens) {
+            if (token.getType() == TokenType.ID) {
+                Symbol symbol = symbolTable.get(token.getValue());
+                if (symbol == null) {
+                    throw new SemanticException("Undefined variable: " + token.getValue(), token.getLine(), token.getColumn());
+                }
+                if (!symbol.isInitialized()) {
+                    throw new SemanticException("Uninitialized variable: " + token.getValue(), token.getLine(), token.getColumn());
+                }
+            }
+        }
+
         formatOutputExpression(outputTokens);
     }
 
@@ -134,11 +147,8 @@ public class SemanticAnalyzer {
                 TokenType leftType = getTokenType(leftToken);
                 TokenType rightType = getTokenType(rightToken);
 
-                if (areTypesIncompatible(leftType, rightType)) {
-                    throw new SemanticException(
-                            String.format("Type mismatch: Cannot compare %s with %s",
-                                    leftType, rightType)
-                    );
+                if (isTypeIncompatible(leftType, rightType)) {
+                    throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s", leftType, rightType));
                 }
             }
         }
@@ -170,17 +180,20 @@ public class SemanticAnalyzer {
         };
     }
 
-    private boolean areTypesIncompatible(TokenType leftType, TokenType rightType) {
-        if (leftType == null || rightType == null) {
+    private boolean isTypeIncompatible(TokenType targetType, TokenType sourceType) {
+        if (targetType == null || sourceType == null) {
             return true;
         }
 
-        if ((leftType == TokenType.INTEIRO || leftType == TokenType.DECIMAL) &&
-                (rightType == TokenType.INTEIRO || rightType == TokenType.DECIMAL)) {
+        if (targetType == TokenType.DECIMAL && sourceType == TokenType.INTEIRO) {
             return false;
         }
 
-        return leftType != TokenType.BOOL || rightType != TokenType.BOOL;
+        if(targetType == TokenType.BOOL && sourceType != TokenType.TEXTO) {
+            return false;
+        }
+
+        return targetType != sourceType;
     }
 
     private boolean isOutputToken(Token token) {
@@ -195,15 +208,14 @@ public class SemanticAnalyzer {
         tokenAux.match(TokenType.ASSIGN);
 
         Symbol targetSymbol = getTargetSymbol(tokenAux, variableToken);
-        List<Token> expressionTokens = new ArrayList<>();
 
-        int line = tokenAux.peek().getLine();
-        int column = tokenAux.peek().getColumn();
         while (!isAssignmentComplete(tokenAux)) {
-            expressionTokens.add(tokenAux.peek());
+            Token currentToken = tokenAux.peek();
+            validateTokenType(tokenAux, currentToken, targetSymbol);
+
             tokenAux.advance();
         }
-        validateTokenType(expressionTokens,targetSymbol, line, column);
+
         markVariableAsInitialized(variableToken);
     }
 
@@ -222,71 +234,52 @@ public class SemanticAnalyzer {
                 isNextAssignment(tokenAux);
     }
 
-    private void validateTokenType(List<Token> tokens, Symbol targetSymbol, int line, int column) {
-        TokenType tokenType = determineValueTypes(tokens);
+    private void validateTokenType(TokenAux tokenAux, Token token, Symbol targetSymbol) {
+        TokenType tokenType = determineValueType(token.getValue());
         switch (tokenType) {
-            case TEXTO -> validateStringToken(targetSymbol, line, column);
-            case INTEIRO -> validateIntegerToken(targetSymbol, line, column);
-            case DECIMAL -> validateDecimalToken(targetSymbol, line, column);
-            case BOOL -> validateBooleanToken(targetSymbol, line, column);
+            case ID -> validateIdentifierToken(tokenAux, token, targetSymbol);
+            case STRING -> validateStringToken(tokenAux, targetSymbol);
+            case INTEIRO -> validateIntegerToken(tokenAux, targetSymbol);
+            case DECIMAL -> validateDecimalToken(tokenAux, targetSymbol);
+            case BOOL -> validateBooleanToken(tokenAux, targetSymbol);
         }
     }
 
-    private TokenType determineValueTypes(List<Token> tokens) {
-        List<TokenType> types = new ArrayList<>();
+    private void validateIdentifierToken(TokenAux tokenAux, Token token, Symbol targetSymbol) {
+        Symbol sourceSymbol = symbolTable.get(token.getValue());
 
-        for (Token token : tokens) {
-            TokenType type = determineValueType(token.getValue());
-            types.add(type);
+        if (!sourceSymbol.isInitialized()) {
+            throw new SemanticException("Uninitialized variable: " + token.getValue(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
 
-        for (TokenType type : types) {
-            if (type == TokenType.BOOL) {
-                return TokenType.BOOL;
-            }
+        if (isTypeIncompatible(targetSymbol.getType(), sourceSymbol.getType())) {
+            throw new SemanticException("Type mismatch: Cannot assign " +
+                    sourceSymbol.getType() + " to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
-
-        for (TokenType type : types) {
-            if (type == TokenType.TEXTO) {
-                return TokenType.TEXTO;
-            }
-        }
-
-        for (TokenType type : types) {
-            if (type == TokenType.DECIMAL) {
-                return TokenType.DECIMAL;
-            }
-        }
-        return TokenType.INTEIRO;
     }
 
-        private void validateStringToken(Symbol targetSymbol, int line, int column) {
+    private void validateStringToken(TokenAux tokenAux, Symbol targetSymbol) {
         if (targetSymbol.getType() != TokenType.TEXTO) {
-            throw new SemanticException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), line, column);
+            throw new SemanticException("Invalid assignment: Cannot assign String to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
     }
 
-    private void validateBooleanToken(Symbol targetSymbol, int line, int column) {
+    private void validateBooleanToken(TokenAux tokenAux, Symbol targetSymbol) {
         if (targetSymbol.getType() != TokenType.BOOL) {
-            throw new SemanticException("Invalid assignment: Cannot assign boolean to " + targetSymbol.getType(), line, column);
+            throw new SemanticException("Invalid assignment: Cannot assign boolean to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
     }
 
-    private void validateIntegerToken(Symbol targetSymbol, int line, int column) {
+    private void validateIntegerToken(TokenAux tokenAux, Symbol targetSymbol) {
         if (isTypeIncompatible(targetSymbol.getType(), TokenType.INTEIRO)) {
-            throw new SemanticException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), line, column);
+            throw new SemanticException("Invalid assignment: Cannot assign int to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
     }
 
-    private void validateDecimalToken(Symbol targetSymbol, int line, int column) {
+    private void validateDecimalToken(TokenAux tokenAux, Symbol targetSymbol) {
         if (isTypeIncompatible(targetSymbol.getType(), TokenType.DECIMAL)) {
-            throw new SemanticException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), line, column);
+            throw new SemanticException("Invalid assignment: Cannot assign decimal to " + targetSymbol.getType(), tokenAux.peek().getLine(), tokenAux.peek().getColumn());
         }
-    }
-
-    private boolean isTypeIncompatible(TokenType targetType, TokenType sourceType) {
-        return targetType != sourceType &&
-                (targetType != TokenType.DECIMAL || sourceType != TokenType.INTEIRO);
     }
 
     private boolean isNextAssignment(TokenAux tokenAux) {
@@ -314,14 +307,20 @@ public class SemanticAnalyzer {
         tokenAux.match(TokenType.FOR);
         tokenAux.match(TokenType.LPAREN);
 
+        int lineInitialization = tokenAux.peek().getLine();
+        int columnInitialization = tokenAux.peek().getColumn();
         String initialization = extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
-        validateVariable(initialization, tokenAux, true);
+        validateVariable(initialization, true, lineInitialization, columnInitialization);
 
+        int lineCondition = tokenAux.peek().getLine();
+        int columnCondition = tokenAux.peek().getColumn();
         String condition = extractForLoopSegment(tokenAux, TokenType.SEMICOLON);
-        validateVariable(condition, tokenAux, false);
+        validateVariable(condition,false, lineCondition, columnCondition);
 
+        int lineIncrement = tokenAux.peek().getLine();
+        int columnIncrement = tokenAux.peek().getColumn();
         String increment = extractForLoopSegment(tokenAux, TokenType.RPAREN);
-        validateVariable(increment, tokenAux, true);
+        validateVariable(increment,true, lineIncrement, columnIncrement);
 
         analyzeBlock(tokenAux);
     }
@@ -336,15 +335,8 @@ public class SemanticAnalyzer {
         return segmentBuilder.toString().trim();
     }
 
-    private void validateVariable(String segment, TokenAux tokenAux, boolean isInitialization) {
+    private void validateVariable(String segment, boolean isInitialization, int line, int column) {
         String[] parts = segment.split(isInitialization ? "=" : " ");
-        if (isInitialization && parts.length != 2) {
-            Token token = tokenAux.peek();
-            throw new SemanticException("Invalid initialization format: " + segment + " at line: " + token.getLine() + ", column: " + token.getColumn());
-        } else if (!isInitialization && parts.length != 3) {
-            Token token = tokenAux.peek();
-            throw new SemanticException("Invalid condition format: " + segment + " at line: " + token.getLine() + ", column: " + token.getColumn());
-        }
 
         String variableName = parts[0].trim();
         String value = isInitialization ? parts[1].trim() : parts[2].trim();
@@ -359,14 +351,12 @@ public class SemanticAnalyzer {
 
         if (isInitialization) {
             if (isTypeIncompatible(expectedType, actualType)) {
-                Token token = tokenAux.peek();
-                throw new SemanticException("Type mismatch: Cannot assign " + actualType + " to " + expectedType + " at line:", token.getLine(), token.getColumn());
+                throw new SemanticException("Type mismatch: Cannot assign " + actualType + " to " + expectedType + " at line:", line, column);
             }
             symbol.setInitialized(true);
         } else {
-            if (areTypesIncompatible(expectedType, actualType)) {
-                Token token = tokenAux.peek();
-                throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s at line: %d, column: %d", expectedType, actualType, token.getLine(), token.getColumn()));
+            if (isTypeIncompatible(expectedType, actualType)) {
+                throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s at line: %d, column: %d", expectedType, actualType, line, column));
             }
         }
     }
@@ -403,7 +393,7 @@ public class SemanticAnalyzer {
         while (!tokenAux.isAtEnd() && tokenAux.peek().getType() != TokenType.RPAREN) {
             Token token = tokenAux.peek();
 
-            if (token.getType() == TokenType.ID) { // Handle variable tokens
+            if (token.getType() == TokenType.ID) {
                 Symbol symbol = symbolTable.get(token.getValue());
                 if (symbol == null) {
                     throw new SemanticException("Undefined variable: " + token.getValue());
@@ -416,7 +406,7 @@ public class SemanticAnalyzer {
                 TokenType leftType = getTokenType(tokenAux.peekPrevious());
                 TokenType rightType = getTokenType(tokenAux.peekNext());
 
-                if (areTypesIncompatible(leftType, rightType)) {
+                if (isTypeIncompatible(leftType, rightType)) {
                     throw new SemanticException(String.format("Type mismatch: Cannot compare %s with %s at line: %d, column: %d", leftType, rightType, token.getLine(), token.getColumn()));
                 }
             }
@@ -439,7 +429,7 @@ public class SemanticAnalyzer {
         }
 
         if (value.startsWith("\"") && value.endsWith("\"")) {
-            return TokenType.TEXTO;
+            return TokenType.STRING;
         }
 
         if (value.equals("VERDADEIRO") || value.equals("FALSO") || value.contains(">") || value.contains("<")
@@ -462,7 +452,7 @@ public class SemanticAnalyzer {
             return TokenType.INTEIRO;
         }
 
-        return TokenType.TEXTO;
+        return TokenType.STRING;
     }
 
     private boolean isInteger(String value) {
